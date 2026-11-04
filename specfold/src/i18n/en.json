@@ -26,6 +26,8 @@
     "title": "Unfold a spec into screens, then <em>fold</em> it back into a better spec",
     "lede": "Drop in a rough product spec. AI proposes three genuinely different design directions and builds a clickable, multi-screen prototype. Every change you make is logged and folded back into an updated spec at the end.",
     "demo": "Explore the finished demo",
+    "demoTag": "NO API KEY · 1 CLICK",
+    "demoSub": "Open a finished prototype and click between its screens.",
     "new": "New project",
     "import": "Open project file (.json)",
     "privacy": "There is no server. Your API key and specs stay in this browser, and requests go straight from your browser to the AI provider.",
@@ -375,7 +377,7 @@
   },
   "export": {
     "title": "Fold it back into a spec",
-    "lede": "Apply what changed during design to the original spec. Changed lines are marked in blue pencil on the right.",
+    "lede": "Apply what changed during design to the original spec. Changed lines are highlighted on the right.",
     "backup": "Project backup .json",
     "html": "Design HTML ({{n}} screens)",
     "htmlHint": "Every screen in one clickable file. Needs an internet connection when opened (Tailwind, Google Fonts).",

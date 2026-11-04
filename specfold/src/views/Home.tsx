@@ -63,11 +63,15 @@ export default function Home() {
           <p className="lede">{t('home.lede')}</p>
         </div>
         <div className="hero-side">
-          <button className="btn pencil" style={{ height: 48, fontSize: 16 }} onClick={() => go({ name: 'project', id: 'demo', step: 'studio' })}>
-            {t('home.demo')} →
+          <button className="demo-sticker" onClick={() => go({ name: 'project', id: 'demo', step: 'studio' })}>
+            <small>{t('home.demoTag')}</small>
+            <b>{t('home.demo')}<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" /></svg></b>
+            <span>{t('home.demoSub')}</span>
           </button>
-          <button className="btn ink" style={{ height: 48 }} onClick={blank}>{t('home.new')}</button>
-          <button className="btn" onClick={() => fileRef.current?.click()}>{t('home.import')}</button>
+          <div className="row">
+            <button className="btn ink" onClick={blank}>+ {t('home.new')}</button>
+            <button className="btn" onClick={() => fileRef.current?.click()}>{t('home.import')}</button>
+          </div>
           <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
           <div className="privacy">
             <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 9V6a5 5 0 0110 0v3M4 9h12v9H4z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>

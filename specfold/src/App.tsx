@@ -16,9 +16,9 @@ export const STEPS: Step[] = ['input', 'review', 'direction', 'studio', 'export'
 export function Logo() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3 3h12l6 6v12H3z" fill="#f8f6f1" stroke="#17171a" strokeWidth="1.6" />
-      <path d="M15 3v6h6" fill="#2340d6" stroke="#17171a" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M7 13h9M7 16.5h6" stroke="#17171a" strokeWidth="1.6" />
+      <path d="M3 3h12l6 6v12H3z" fill="#fff3c4" stroke="#1a1a1a" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M15 3v6h6" fill="#c8205a" stroke="#1a1a1a" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M7 13h9M7 16.5h6" stroke="#1a1a1a" strokeWidth="1.8" />
     </svg>
   );
 }
