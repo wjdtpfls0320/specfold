@@ -4,6 +4,7 @@ import { diffLines } from 'diff';
 import { useStore } from '../store';
 import { aiExport } from '../lib/ai';
 import { buildMarkdown } from '../lib/exportMd';
+import { buildPrototypeHtml } from '../lib/exportHtml';
 import { useAI } from '../components/useAI';
 import { download, slug } from '../lib/util';
 
@@ -31,7 +32,8 @@ export default function ExportView() {
     const { readonly, ...rest } = p;
     download(`${slug(p.name)}.specfold.json`, JSON.stringify(rest, null, 2), 'application/json');
   };
-  const impactful = p.changeLog.filter((c) => c.specImpact.type !== 'none');
+  const doneScreens = p.screens.filter((s) => s.status === 'done' && s.html).length;
+  const impactful =p.changeLog.filter((c) => c.specImpact.type !== 'none');
   const visualOnly = p.changeLog.filter((c) => c.specImpact.type === 'none');
 
   return (
@@ -44,6 +46,10 @@ export default function ExportView() {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <button className="btn" onClick={backup}>{t('export.backup')}</button>
+          <button className="btn" disabled={!doneScreens} title={t('export.htmlHint')}
+            onClick={() => download(`${slug(p.name)}-prototype.html`, buildPrototypeHtml(p), 'text/html')}>
+            {t('export.html', { n: doneScreens })}
+          </button>
           <button className="btn ink" disabled={!revised} onClick={() => download(`${slug(p.name)}-spec-v2.md`, revised)}>{t('export.download')}</button>
         </div>
       </div>

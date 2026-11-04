@@ -244,6 +244,8 @@
     "title": "Fold it back into a spec",
     "lede": "Apply what changed during design to the original spec. Changed lines are marked in blue pencil on the right.",
     "backup": "Project backup .json",
+    "html": "Design HTML ({{n}} screens)",
+    "htmlHint": "Every screen in one clickable file. Needs an internet connection when opened (Tailwind, Google Fonts).",
     "download": "Updated spec .md",
     "changes": "Changes to apply",
     "changesLede": "Only checked items go into the spec.",
