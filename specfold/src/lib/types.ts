@@ -140,6 +140,8 @@ export interface Project {
   changeLog: ChangeEntry[];
   snapshots: Snapshot[];
   exportedMd?: string;
+  /** Device width last used in the studio preview; the HTML export opens at the same width. */
+  device?: 'mobile' | 'tablet' | 'desktop';
 }
 
 export type CheckStatus = 'ok' | 'vague' | 'missing';

@@ -50,7 +50,7 @@ const BRIDGE = `
   var mode = '__MODE__';
   var hoverEl = null, selEl = null;
   var style = document.createElement('style');
-  style.textContent = '.__dw-hover{outline:2px dashed #2340D6!important;outline-offset:2px!important;cursor:crosshair!important}.__dw-sel{outline:2px solid #2340D6!important;outline-offset:2px!important}';
+  style.textContent = '.__dw-hover{outline:2px dashed #2340D6!important;outline-offset:2px!important;cursor:crosshair!important}.__dw-sel{outline:2px solid #2340D6!important;outline-offset:2px!important}[contenteditable]{outline:2px solid #2340D6!important;outline-offset:2px!important;background:rgba(35,64,214,.08)!important;cursor:text!important;caret-color:#2340D6}';
   document.head.appendChild(style);
   function target(e){ var t = e.target; return t && t.closest ? t.closest('[data-dw-id]') : null; }
   function describe(el){
@@ -64,7 +64,50 @@ const BRIDGE = `
     var el = target(e); if (hoverEl && hoverEl !== el) hoverEl.classList.remove('__dw-hover');
     hoverEl = el; if (el) el.classList.add('__dw-hover');
   }, true);
+  // ---- in-place text editing (select mode: double-click text) ----
+  var editing = null, original = '';
+  function ownText(el){ for (var i = 0; i < el.childNodes.length; i++) { var n = el.childNodes[i]; if (n.nodeType === 3 && n.textContent.trim()) return true; } return false; }
+  function editableFrom(t){
+    if (!t || t.nodeType !== 1 || t.closest('svg,script,style,img,input,textarea,select')) return null;
+    if (ownText(t)) return t;
+    var all = t.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) if (ownText(all[i]) && !all[i].closest('svg,script,style')) return all[i];
+    return null;
+  }
+  function clean(root){
+    var els = [root].concat(Array.prototype.slice.call(root.querySelectorAll('.__dw-hover,.__dw-sel')));
+    els.forEach(function(x){ x.classList.remove('__dw-hover', '__dw-sel'); if (x.getAttribute('class') === '') x.removeAttribute('class'); });
+    return root;
+  }
+  function finish(save){
+    var ed = editing; if (!ed) return;
+    editing = null;
+    ed.removeAttribute('contenteditable');
+    if (!save) { ed.innerHTML = original; return; }
+    if (ed.innerHTML === original) return;
+    var owner = ed.closest('[data-dw-id]'); if (!owner) return;
+    parent.postMessage({ __dw: true, type: 'text-edit', id: owner.getAttribute('data-dw-id'), outer: clean(owner.cloneNode(true)).outerHTML, text: (ed.innerText || '').trim().slice(0, 60) }, '*');
+  }
+  document.addEventListener('dblclick', function(e){
+    if (mode !== 'select') return;
+    var ed = editableFrom(e.target); if (!ed || !ed.closest('[data-dw-id]')) return;
+    e.preventDefault(); e.stopPropagation();
+    if (editing && editing !== ed) finish(true);
+    editing = ed; original = ed.innerHTML;
+    try { ed.contentEditable = 'plaintext-only'; } catch (_) { ed.contentEditable = 'true'; }
+    if (ed.contentEditable !== 'plaintext-only') ed.contentEditable = 'true';
+    ed.focus();
+    var r = document.createRange(); r.selectNodeContents(ed); var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    ed.addEventListener('blur', function onBlur(){ ed.removeEventListener('blur', onBlur); finish(true); });
+  }, true);
+  document.addEventListener('keydown', function(e){
+    if (!editing) return;
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); editing.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  }, true);
+
   document.addEventListener('click', function(e){
+    if (editing && editing.contains(e.target)) return;
     if (mode === 'select') {
       e.preventDefault(); e.stopPropagation();
       var el = target(e); if (!el) return;
@@ -87,7 +130,7 @@ const BRIDGE = `
   window.addEventListener('message', function(e){
     var d = e.data || {};
     if (!d.__dw) return;
-    if (d.type === 'mode') { mode = d.mode; if (hoverEl) hoverEl.classList.remove('__dw-hover'); if (mode !== 'select' && selEl) selEl.classList.remove('__dw-sel'); }
+    if (d.type === 'mode') { if (editing) finish(true); mode = d.mode; if (hoverEl) hoverEl.classList.remove('__dw-hover'); if (mode !== 'select' && selEl) selEl.classList.remove('__dw-sel'); }
     if (d.type === 'tokens') { var s = document.getElementById('dw-tokens'); if (s) s.textContent = d.css; }
     if (d.type === 'clear') { if (selEl) selEl.classList.remove('__dw-sel'); selEl = null; }
   });

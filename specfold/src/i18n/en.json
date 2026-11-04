@@ -1,6 +1,19 @@
 {
-  "common": { "cancel": "Cancel", "cancelled": "Request cancelled", "save": "Save", "delete": "Delete", "aiError": "AI request failed: {{msg}}" },
-  "steps": { "aria": "Steps", "input": "Spec", "review": "Structure", "direction": "Direction", "studio": "Studio", "export": "Export" },
+  "common": {
+    "cancel": "Cancel",
+    "cancelled": "Request cancelled",
+    "save": "Save",
+    "delete": "Delete",
+    "aiError": "AI request failed: {{msg}}"
+  },
+  "steps": {
+    "aria": "Steps",
+    "input": "Spec",
+    "review": "Structure",
+    "direction": "Direction",
+    "studio": "Studio",
+    "export": "Export"
+  },
   "demo": {
     "readonly": "This is the demo project — look around freely.",
     "copy": "Copy to my projects",
@@ -38,7 +51,11 @@
     "ollama": "Ollama must allow browser requests. Set this environment variable before starting it:",
     "fast": "Fast model · checks & structuring",
     "strong": "Strong model · design",
-    "grade": { "recommended": "Recommended", "ok": "Usable", "weak": "Not recommended" },
+    "grade": {
+      "recommended": "Recommended",
+      "ok": "Usable",
+      "weak": "Not recommended"
+    },
     "advanced": "Advanced",
     "advancedNote": "Enter model names exactly as your provider's docs list them. Change the URL if you use a proxy or company gateway.",
     "weakWarn": "This model may produce weak designs. Prefer the style presets when choosing a direction.",
@@ -74,13 +91,30 @@
     "missingN": "{{n}} essential items are empty. You can still continue, but the result may turn out generic.",
     "ownAnswer": "Your own answer",
     "vagueTitle": "Some words steer AI toward generic design",
-    "busy": { "check": "Reading your spec", "structure": "Breaking it into screens" }
+    "busy": {
+      "check": "Reading your spec",
+      "structure": "Breaking it into screens"
+    }
   },
   "check": {
-    "status": { "ok": "specific", "vague": "vague", "missing": "missing" },
-    "summary": "One-liner", "audience": "Who uses it, when", "platform": "Platform", "screens": "Screen list",
-    "screen_elements": "What each screen contains", "flow": "Key features & flow", "mood": "3 mood adjectives", "avoid": "Feelings to avoid",
-    "references": "Reference products", "content": "Real copy & data", "brand": "Brand assets", "priority": "Priorities", "states": "State screens"
+    "status": {
+      "ok": "specific",
+      "vague": "vague",
+      "missing": "missing"
+    },
+    "summary": "One-liner",
+    "audience": "Who uses it, when",
+    "platform": "Platform",
+    "screens": "Screen list",
+    "screen_elements": "What each screen contains",
+    "flow": "Key features & flow",
+    "mood": "3 mood adjectives",
+    "avoid": "Feelings to avoid",
+    "references": "Reference products",
+    "content": "Real copy & data",
+    "brand": "Brand assets",
+    "priority": "Priorities",
+    "states": "State screens"
   },
   "tips": {
     "title": "Writing tips",
@@ -88,21 +122,68 @@
     "better": "Items that make it much better",
     "cliche": "“Clean”, “modern”, “sleek” and “minimal” steer AI to the most generic design. Try: clean → generous whitespace / hairline rules / newspaper-ordered.",
     "must": [
-      { "name": "One-liner", "why": "Anchors what the product is", "ex": "Reserve leftover bakery bread before closing" },
-      { "name": "Who, and when", "why": "Sets density, type size and tone", "ex": "Commuters, one-handed on the train" },
-      { "name": "Platform", "why": "Sets the layout baseline", "ex": "Mobile app / desktop web / both" },
-      { "name": "Screen list", "why": "The units that get generated", "ex": "Home, Shop, Checkout, My page" },
-      { "name": "What goes on each screen", "why": "Otherwise AI fills it with anything", "ex": "Home: map + closing-soon list + filters" },
-      { "name": "Key features & flow", "why": "Wires screens together", "ex": "List → detail → reserve → done" },
-      { "name": "3 mood adjectives", "why": "The core input for direction", "ex": "Warm, neighborly, handwritten" },
-      { "name": "Feelings to avoid", "why": "The strongest guard against generic output", "ex": "No delivery-app red" }
+      {
+        "name": "One-liner",
+        "why": "Anchors what the product is",
+        "ex": "Reserve leftover bakery bread before closing"
+      },
+      {
+        "name": "Who, and when",
+        "why": "Sets density, type size and tone",
+        "ex": "Commuters, one-handed on the train"
+      },
+      {
+        "name": "Platform",
+        "why": "Sets the layout baseline",
+        "ex": "Mobile app / desktop web / both"
+      },
+      {
+        "name": "Screen list",
+        "why": "The units that get generated",
+        "ex": "Home, Shop, Checkout, My page"
+      },
+      {
+        "name": "What goes on each screen",
+        "why": "Otherwise AI fills it with anything",
+        "ex": "Home: map + closing-soon list + filters"
+      },
+      {
+        "name": "Key features & flow",
+        "why": "Wires screens together",
+        "ex": "List → detail → reserve → done"
+      },
+      {
+        "name": "3 mood adjectives",
+        "why": "The core input for direction",
+        "ex": "Warm, neighborly, handwritten"
+      },
+      {
+        "name": "Feelings to avoid",
+        "why": "The strongest guard against generic output",
+        "ex": "No delivery-app red"
+      }
     ],
     "nice": [
-      { "name": "Reference products + why", "why": "Saying why makes mood extraction accurate" },
-      { "name": "Real copy & data", "why": "Designs use real content instead of filler" },
-      { "name": "Brand assets", "why": "Logo, fixed colors, product name" },
-      { "name": "Priorities", "why": "“Closing time matters most” → visual hierarchy" },
-      { "name": "State screens", "why": "Empty, loading, error, signed-out" }
+      {
+        "name": "Reference products + why",
+        "why": "Saying why makes mood extraction accurate"
+      },
+      {
+        "name": "Real copy & data",
+        "why": "Designs use real content instead of filler"
+      },
+      {
+        "name": "Brand assets",
+        "why": "Logo, fixed colors, product name"
+      },
+      {
+        "name": "Priorities",
+        "why": "“Closing time matters most” → visual hierarchy"
+      },
+      {
+        "name": "State screens",
+        "why": "Empty, loading, error, signed-out"
+      }
     ]
   },
   "review": {
@@ -110,8 +191,15 @@
     "lede": "This is what the design is built from. Fix anything wrong right here, and drag rows to reorder screens.",
     "next": "Next: design direction",
     "service": "Product",
-    "summary": "Summary", "audience": "Audience", "context": "Context", "platform": "Platform",
-    "pf": { "mobile": "Mobile", "desktop": "Desktop", "both": "Both" },
+    "summary": "Summary",
+    "audience": "Audience",
+    "context": "Context",
+    "platform": "Platform",
+    "pf": {
+      "mobile": "Mobile",
+      "desktop": "Desktop",
+      "both": "Both"
+    },
     "mood": "Mood",
     "moodKw": "Feels like",
     "avoidKw": "Avoid",
@@ -132,8 +220,16 @@
     "title": "Pick a design direction",
     "lede": "The colors, fonts and spacing chosen here (design tokens) are shared by every screen. You can still tweak them later in the Adjust panel.",
     "keep": "Keep current direction",
-    "tab": { "ai": "AI: 3 directions", "preset": "Style presets", "reference": "Reference" },
-    "src": { "ai": "AI", "preset": "Preset", "reference": "Reference" },
+    "tab": {
+      "ai": "AI: 3 directions",
+      "preset": "Style presets",
+      "reference": "Reference"
+    },
+    "src": {
+      "ai": "AI",
+      "preset": "Preset",
+      "reference": "Reference"
+    },
     "generate": "Propose 3 directions",
     "regenerate": "Propose again",
     "generating": "Building three distinct directions…",
@@ -143,7 +239,11 @@
     "refUpload": "Upload screenshots",
     "analyze": "Analyze mood",
     "analyzing": "Analyzing…",
-    "empty": { "ai": "No proposals yet — press the button above.", "preset": "", "reference": "No reference analyzed yet." },
+    "empty": {
+      "ai": "No proposals yet — press the button above.",
+      "preset": "",
+      "reference": "No reference analyzed yet."
+    },
     "font": "Type",
     "color": "Color",
     "layout": "Layout",
@@ -159,13 +259,25 @@
   },
   "studio": {
     "screens": "Screens",
-    "status": { "pending": "Waiting", "generating": "Generating", "done": "Done", "error": "Error" },
+    "status": {
+      "pending": "Waiting",
+      "generating": "Generating",
+      "done": "Done",
+      "error": "Error"
+    },
     "generateAll": "Generate {{n}} remaining",
     "generateThis": "Generate this screen",
     "addScreen": "Add screen",
     "addScreenPrompt": "New screen name",
-    "device": { "mobile": "Mobile", "tablet": "Tablet", "desktop": "Desktop" },
-    "mode": { "prototype": "Prototype", "select": "Select" },
+    "device": {
+      "mobile": "Mobile",
+      "tablet": "Tablet",
+      "desktop": "Desktop"
+    },
+    "mode": {
+      "prototype": "Prototype",
+      "select": "Select"
+    },
     "light": "Light",
     "dark": "Dark",
     "undo": "Undo",
@@ -186,12 +298,20 @@
     "fixedAll": "Quality fixes applied",
     "autoFixed": "{{name}}: auto-fixed quality violations once ({{rules}}).",
     "autoFixFailed": "{{name}}: the automatic quality fix ({{rules}}) did not apply. Retry from the Quality badge.",
-    "tab": { "chat": "Chat", "adjust": "Adjust", "log": "Change log" },
+    "tab": {
+      "chat": "Chat",
+      "adjust": "Adjust",
+      "log": "Change log"
+    },
     "chatHint": "Describe what to change. In Select mode, click an element to change only that. Add features here too.",
     "chatPh": "e.g. Add a favorites feature / make the button bigger",
     "send": "Send",
     "selected": "Selected",
-    "scope": { "element": "This element", "screen": "This screen", "global": "All screens" },
+    "scope": {
+      "element": "This element",
+      "screen": "This screen",
+      "global": "All screens"
+    },
     "thinking": "Editing",
     "applied": "Applied",
     "fallback": "The partial edit didn't fit — fetching the whole screen instead…",
@@ -204,7 +324,15 @@
     "adj": {
       "global": "Global tokens · instant, no AI",
       "color": "Color",
-      "c": { "bg": "Background", "surface": "Surface", "ink": "Text", "inkMuted": "Muted text", "primary": "Primary", "accent": "Accent", "line": "Lines" },
+      "c": {
+        "bg": "Background",
+        "surface": "Surface",
+        "ink": "Text",
+        "inkMuted": "Muted text",
+        "primary": "Primary",
+        "accent": "Accent",
+        "line": "Lines"
+      },
       "fonts": "Font pair",
       "baseSize": "Base size",
       "radius": "Roundness",
@@ -218,8 +346,11 @@
       "fontSize": "Font size",
       "weight": "Weight",
       "textColor": "Text color",
-      "bgColor": "Background"
-    }
+      "bgColor": "Background",
+      "noText": "This element has no text",
+      "textHint": "Enter to save · or double-click text in the preview"
+    },
+    "dblHint": "Double-click text to edit it in place"
   },
   "lint": {
     "banned-font": "Banned font",

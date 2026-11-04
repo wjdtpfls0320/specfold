@@ -22,6 +22,8 @@ interface Props {
   onSelect?: (el: SelectedEl) => void;
   /** The screen tried to leave its own document (real link / location.href); value is a screen-id guess. */
   onNavAttempt?: (to: string) => void;
+  /** Text edited in place (select mode, double-click): new outerHTML of the owning data-dw-id element. */
+  onTextEdit?: (id: string, outer: string, text: string) => boolean;
   /** The frame left its document anyway and was restored. */
   onEscape?: () => void;
   style?: React.CSSProperties;
@@ -33,15 +35,28 @@ interface Props {
  * reach the app's storage or API keys). The document is rebuilt only when html changes;
  * token edits and mode switches are pushed live via postMessage.
  */
-export default function Preview({ html, tokens, mode = 'prototype', dark, lang, title, onNav, onSelect, onNavAttempt, onEscape, style, className }: Props) {
+export default function Preview({ html, tokens, mode = 'prototype', dark, lang, title, onNav, onSelect, onNavAttempt, onTextEdit, onEscape, style, className }: Props) {
   const ref = useRef<HTMLIFrameElement>(null);
   const tokensRef = useRef(tokens);
   tokensRef.current = tokens;
   const modeRef = useRef(mode);
   modeRef.current = mode;
 
+  // An in-place text edit already changed the DOM inside the frame. When the html prop comes back
+  // with that edit, keep the current document instead of reloading the frame (no white flash).
+  const latestHtml = useRef(html);
+  latestHtml.current = html;
+  const inFrameEditAt = useRef(0);
+  const [docVersion, setDocVersion] = useState(0);
+  const firstHtml = useRef(true);
+  useEffect(() => {
+    if (firstHtml.current) { firstHtml.current = false; return; }
+    if (Date.now() - inFrameEditAt.current < 2000) { inFrameEditAt.current = 0; return; }
+    setDocVersion((v) => v + 1);
+  }, [html]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const doc = useMemo(() => buildPreviewDoc(html, tokensRef.current, { mode: mode === 'static' ? 'static' : modeRef.current, dark, lang }), [html, dark, lang, tokens?.font.display.family, tokens?.font.body.family, mode === 'static']);
+  const doc = useMemo(() => buildPreviewDoc(latestHtml.current, tokensRef.current, { mode: mode === 'static' ? 'static' : modeRef.current, dark, lang }), [docVersion, dark, lang, tokens?.font.display.family, tokens?.font.body.family, mode === 'static']);
 
   useEffect(() => {
     const w = ref.current?.contentWindow;
@@ -61,10 +76,17 @@ export default function Preview({ html, tokens, mode = 'prototype', dark, lang, 
       if (d.type === 'nav') onNav?.(d.to);
       if (d.type === 'select') onSelect?.(d.el);
       if (d.type === 'nav-attempt') onNavAttempt?.(String(d.to || ''));
+      if (d.type === 'text-edit' && d.id && d.outer && onTextEdit) {
+        inFrameEditAt.current = Date.now();
+        if (!onTextEdit(String(d.id), String(d.outer), String(d.text || ''))) {
+          inFrameEditAt.current = 0;
+          setDocVersion((v) => v + 1); // not saved: reload to drop the unsaved in-frame change
+        }
+      }
     };
     window.addEventListener('message', onMsg);
     return () => window.removeEventListener('message', onMsg);
-  }, [onNav, onSelect, onNavAttempt, mode]);
+  }, [onNav, onSelect, onNavAttempt, onTextEdit, mode]);
 
   // Fallback for browsers without the Navigation API: a second load of the same srcdoc means the
   // frame navigated away (it would stay blank). Remount it, at most 3 times per document.

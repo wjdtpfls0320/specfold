@@ -5,7 +5,7 @@ import { aiEdit, aiEditFull, aiFix, aiScreen, type Ctx, type EditResult } from '
 import { useAI } from '../components/useAI';
 import Preview, { type SelectedEl } from '../components/Preview';
 import { lintProject, lintScreen } from '../lib/lint';
-import { applyEdit, directText, getOuter, patchElement } from '../lib/edits';
+import { applyEdit, getOuter, patchElement, setTextSegment, textSegments } from '../lib/edits';
 import { FONT_PAIRS, setTokenPath } from '../lib/tokens';
 import { QUICK_CHIPS } from '../lib/prompts';
 import { uid } from '../lib/util';
@@ -44,7 +44,11 @@ export default function Studio() {
   const ro = !!p.readonly;
   const ai = useAI();
   const [cur, setCur] = useState(p.screens[0]?.id ?? '');
-  const [device, setDevice] = useState<Device>(p.spec?.platform === 'desktop' ? 'desktop' : 'mobile');
+  const [device, setDeviceState] = useState<Device>(p.device ?? (p.spec?.platform === 'desktop' ? 'desktop' : 'mobile'));
+  const setDevice = (d: Device) => {
+    setDeviceState(d);
+    if (!p.readonly) update((x) => { x.device = d; });
+  };
   const [mode, setMode] = useState<'prototype' | 'select'>('prototype');
   const [dark, setDark] = useState(false);
   const [tab, setTab] = useState<'chat' | 'adjust' | 'log'>('chat');
@@ -63,6 +67,8 @@ export default function Studio() {
 
   const screen = p.screens.find((s) => s.id === cur) ?? p.screens[0];
   const specScreen = p.spec?.screens.find((s) => s.id === screen?.id);
+  const curRef = useRef('');
+  curRef.current = screen?.id ?? '';
   const lint = useMemo(() => lintProject(p.screens, p.tokens, p.contentLang), [p.screens, p.tokens, p.contentLang]);
 
   useEffect(() => { if (!screen && p.screens[0]) setCur(p.screens[0].id); }, [p.screens.length]);
@@ -218,6 +224,21 @@ export default function Studio() {
     else notify(t('studio.navBlocked'));
   }, []);
   const onEscape = useCallback(() => notify(t('studio.escaped')), []);
+  const onTextEdit = useCallback((id: string, outer: string, text: string): boolean => {
+    const st = useStore.getState();
+    if (st.project?.readonly) { notify(t('demo.readonlyAction')); return false; }
+    const sid = curRef.current;
+    const cur = st.project?.screens.find((x) => x.id === sid);
+    const out = cur ? applyEdit(cur.html, id, outer) : null;
+    if (out === null || out === cur!.html) return false;
+    st.update((d) => {
+      const s = d.screens.find((x) => x.id === sid)!;
+      s.html = out;
+      s.updatedAt = Date.now();
+      logChange(d, { request: `${t('studio.adj.text')}: "${text}"`, scope: 'element', screenIds: [sid], specImpact: { type: 'content_change', summary: text } });
+    }, { undoable: true });
+    return true;
+  }, []);
   const onSelect = useCallback((el: SelectedEl) => { setSel(el); setScope('element'); setTab((x) => (x === 'log' ? 'chat' : x)); }, []);
 
   const saveSnapshot = () =>
@@ -243,7 +264,18 @@ export default function Studio() {
   const compareSnap = compare ? p.snapshots.find((s) => s.id === compare) : null;
   const tk = p.tokens;
   const fixable = lint.filter((v) => v.severity === 'fix').length;
-  const selText = sel && screen ? directText(screen.html, sel.id) : '';
+  const selTexts = sel && screen ? textSegments(screen.html, sel.id) : [];
+  const setSegment = (i: number, value: string) => {
+    if (!sel || !screen) return;
+    update((d) => {
+      const s = d.screens.find((x) => x.id === screen.id)!;
+      const out = setTextSegment(s.html, sel.id, i, value);
+      if (out === null) return;
+      s.html = out;
+      s.updatedAt = Date.now();
+      logChange(d, { request: `${t('studio.adj.text')}: "${value.slice(0, 40)}"`, scope: 'element', screenIds: [screen.id], specImpact: { type: 'content_change', summary: value.slice(0, 60) } });
+    }, { undoable: true });
+  };
 
   return (
     <div className="studio">
@@ -289,6 +321,7 @@ export default function Studio() {
             <button aria-pressed={mode === 'prototype'} onClick={() => setMode('prototype')}>{t('studio.mode.prototype')}</button>
             <button aria-pressed={mode === 'select'} onClick={() => setMode('select')}>{t('studio.mode.select')}</button>
           </div>
+          {mode === 'select' && !ro && <span className="mono muted" style={{ fontSize: 11 }}>{t('studio.dblHint')}</span>}
           {tk.color.dark && (
             <div className="seg"><button aria-pressed={!dark} onClick={() => setDark(false)}>{t('studio.light')}</button><button aria-pressed={dark} onClick={() => setDark(true)}>{t('studio.dark')}</button></div>
           )}
@@ -371,7 +404,7 @@ export default function Studio() {
                   return (
                     <div className="device" style={{ width: w * s, height: h * s }}>
                       <Preview html={live ? liveHtml : screen.html} tokens={tk} mode={live ? 'static' : mode} dark={dark} lang={p.contentLang}
-                        onNav={onNav} onSelect={onSelect} onNavAttempt={onNavAttempt} onEscape={onEscape} title={screen.name}
+                        onNav={onNav} onSelect={onSelect} onNavAttempt={onNavAttempt} onTextEdit={onTextEdit} onEscape={onEscape} title={screen.name}
                         style={{ width: w, height: h, transform: `scale(${s})`, transformOrigin: '0 0' }} />
                     </div>
                   );
@@ -481,11 +514,17 @@ export default function Studio() {
             {!sel ? <p className="muted" style={{ fontSize: 13 }}>{t('studio.adj.pickFirst')}</p> : (
               <>
                 <span className="selchip"><code>{sel.id}</code></span>
-                <label className="field">
-                  <span>{t('studio.adj.text')}</span>
-                  <textarea key={`${sel.id}|${selText}`} className="input" rows={2} defaultValue={selText} disabled={ro}
-                    onBlur={(e) => e.target.value !== selText && patchSel({ text: e.target.value }, `${t('studio.adj.text')}: "${e.target.value.slice(0, 30)}"`, 'content_change')} />
-                </label>
+                <div className="field">
+                  <span>{t('studio.adj.text')} {selTexts.length > 1 && <span className="mono muted">· {selTexts.length}</span>}</span>
+                  {selTexts.length === 0 && <span className="muted" style={{ fontSize: 12 }}>{t('studio.adj.noText')}</span>}
+                  {selTexts.map((seg, i) => (
+                    <textarea key={`${sel.id}|${i}|${seg}`} className="input" rows={seg.length > 40 ? 3 : 1} defaultValue={seg} disabled={ro}
+                      style={{ minHeight: 36 }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); (e.target as HTMLTextAreaElement).blur(); } }}
+                      onBlur={(e) => e.target.value.trim() !== seg && setSegment(i, e.target.value.trim())} />
+                  ))}
+                  <span className="muted" style={{ fontSize: 12 }}>{t('studio.adj.textHint')}</span>
+                </div>
                 {(['padding', 'margin'] as const).map((k) => (
                   <label className="adj-row" key={k}>
                     <span>{t(`studio.adj.${k}`)}</span>

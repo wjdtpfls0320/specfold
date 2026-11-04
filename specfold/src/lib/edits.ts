@@ -62,3 +62,33 @@ export function directText(html: string, id: string): string {
     .filter(Boolean)
     .join(' ');
 }
+
+/** Visible text pieces inside an element, in document order (for elements whose text sits in nested children). */
+function textNodes(el: Element): Text[] {
+  const out: Text[] = [];
+  const walk = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) =>
+      n.textContent?.trim() && !n.parentElement?.closest('script,style') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
+  });
+  while (walk.nextNode()) out.push(walk.currentNode as Text);
+  return out;
+}
+
+export function textSegments(html: string, id: string): string[] {
+  const el = parse(html).querySelector(`[data-dw-id="${esc(id)}"]`);
+  return el ? textNodes(el).map((n) => n.textContent!.trim()) : [];
+}
+
+/** Replace the index-th text piece, keeping its surrounding whitespace. */
+export function setTextSegment(html: string, id: string, index: number, value: string): string | null {
+  const doc = parse(html);
+  const el = doc.querySelector(`[data-dw-id="${esc(id)}"]`);
+  if (!el) return null;
+  const node = textNodes(el)[index];
+  if (!node) return null;
+  const raw = node.textContent ?? '';
+  const lead = raw.match(/^\s*/)![0];
+  const trail = raw.match(/\s*$/)![0];
+  node.textContent = lead + value + trail;
+  return doc.body.innerHTML;
+}
