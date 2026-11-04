@@ -70,8 +70,8 @@ function TopBar() {
 
 function ReadonlyBand() {
   const { t } = useTranslation();
-  const { project, setProject, go, notify } = useStore();
-  if (!project?.readonly) return null;
+  const { project, route, setProject, go, notify } = useStore();
+  if (!project?.readonly || route.name !== 'project' || route.id !== project.id) return null;
   const copy = async () => {
     const copyP = newProject({ ...structuredClone(project), readonly: false, name: project.name + t('demo.copySuffix') });
     copyP.id = newProject().id;
