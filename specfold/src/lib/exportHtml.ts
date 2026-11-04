@@ -1,5 +1,6 @@
 import type { Project } from './types';
 import { googleFontsUrl, tokensToCss } from './tokens';
+import { GUESS_FN, neutralizeNavigation } from './preview';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -28,6 +29,12 @@ export function buildPrototypeHtml(p: Project): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="generator" content="Specfold">
+<script>
+/* page-moving code in screens (location.href = 'detail.html') is rewritten to __dwLoc → switches screens instead */
+window.__dwGuess = ${GUESS_FN};
+window.__dwLoc = { set href(v){ window.__dwGo && window.__dwGo(v); }, get href(){ return location.href; },
+  assign: function(v){ window.__dwGo && window.__dwGo(v); }, replace: function(v){ window.__dwGo && window.__dwGo(v); }, reload: function(){} };
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 ${t ? `<link rel="stylesheet" href="${googleFontsUrl(t)}">` : ''}
 <style>
@@ -72,9 +79,10 @@ ${mobile ? '</div>' : ''}</div>
     var nav = e.target.closest && e.target.closest('[data-nav]');
     if (nav) { e.preventDefault(); var to = nav.getAttribute('data-nav'); if (ids.indexOf(to) >= 0) show(to); return; }
     var a = e.target.closest && e.target.closest('a[href]');
-    if (a && !a.closest('[data-dw-ui]')) e.preventDefault();
+    if (a && !a.closest('[data-dw-ui]')) { e.preventDefault(); window.__dwGo(a.getAttribute('href') || ''); }
   });
   document.addEventListener('submit', function(e){ e.preventDefault(); });
+  window.__dwGo = function(u){ var g = window.__dwGuess(u); if (ids.indexOf(g) >= 0) show(g); };
   if (pick) pick.addEventListener('change', function(){ show(pick.value); });
   var ui = document.querySelector('[data-dw-ui]');
   document.getElementById('dw-hide').addEventListener('click', function(){ ui.classList.add('hidden'); });

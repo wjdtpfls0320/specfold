@@ -170,6 +170,7 @@ export const P4_SYSTEM = `확정된 디자인 토큰으로 화면 하나의 HTML
 - 폰트: font-[family-name:var(--font-display)], font-[family-name:var(--font-body)] 또는 style="font-family:var(--font-display)"
 - 주요 요소마다 고유한 data-dw-id를 붙인다 (예: data-dw-id="home-hero-title"). 화면id-영역-역할 형식
 - 다른 화면으로 가는 버튼/링크에는 data-nav="화면id"를 붙인다. 이동 가능 화면: {{navTargets}}
+- 화면 이동은 data-nav로만 한다. href="다른파일.html", location.href/location.assign, window.open, form action으로 페이지를 바꾸지 마라 (미리보기가 깨진다). 링크가 필요하면 href="#"
 - 플랫폼: {{platform}}. 모바일이면 390px 폭 기준으로 설계하고 하단 탭바 등 모바일 관례를 따른다
 - 이미지는 실제 사진 대신: 토큰 색으로 만든 도형/패턴, 또는 https://picsum.photos/seed/{의미있는단어}/w/h
 - 아이콘: 인라인 SVG (선 굵기 통일, stroke="currentColor"). 이모지 금지
@@ -199,7 +200,7 @@ export const P5_SYSTEM = `사용자의 수정 요청을 현재 화면에 반영�
 - 요청과 상관없는 부분은 절대 바꾸지 않는다
 - edits의 targetId는 현재 화면에 실제로 있는 data-dw-id여야 하고, replaceWith는 그 요소 전체(바깥 태그 포함, 같은 data-dw-id 유지)다
 - 새 요소를 넣을 때는 감싸는 부모 요소를 targetId로 바꾼다. 새 요소에도 data-dw-id를 붙인다
-- 다른 화면으로 가는 요소에는 data-nav="화면id"
+- 다른 화면으로 가는 요소에는 data-nav="화면id" (href로 다른 주소로 보내거나 location을 바꾸는 스크립트 금지)
 - 요청이 디자인 원칙(금지 목록)에 어긋나면 그대로 따르되, 더 나은 대안을 note에 한 줄 제안한다
   (사용자가 원하면 보라색 그라데이션도 쓸 수 있다. 사용자의 결정이 원칙보다 우선이다)
 - 기능 추가 요청이면: 필요한 요소/화면을 추가하고, 새 화면이 필요하면 newScreens에 정의만 적는다 (HTML은 P4가 생성)

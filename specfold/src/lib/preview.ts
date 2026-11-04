@@ -12,6 +12,38 @@ const CSP = [
   "form-action 'none'",
 ].join('; ');
 
+/**
+ * Generated screens sometimes wire buttons with `location.href = 'detail.html'` instead of data-nav.
+ * Inside the srcdoc iframe that leaves the screen and loads the app's own URL, which can't run
+ * sandboxed → blank forever. The Navigation API's `navigate` event does not fire for these
+ * (opaque sandbox origin), and `location` can't be overridden, so rewrite the code instead:
+ * location.href= / location= / location.assign() / location.replace() → __dwLoc (a fake location
+ * that reports the target to the parent). Anything that still escapes is caught by Preview's
+ * reload-count fallback.
+ */
+export function neutralizeNavigation(html: string) {
+  return html
+    .replace(/\b(?:window\.|document\.|self\.|top\.|parent\.)?location\.(href\s*=(?!=)|assign\s*\(|replace\s*\()/g, '__dwLoc.$1')
+    .replace(/\b(?:window\.|document\.|self\.|top\.|parent\.)?location\s*=(?!=)/g, '__dwLoc.href=');
+}
+
+/** Turns a URL like "detail.html", "/checkout", "#/store" into a screen-id guess. */
+export const GUESS_FN = `function(url){
+    try { var u = new URL(String(url), 'http://x/'); var h = u.hash.replace(/^#\\/?/, ''); if (h) return h;
+      var last = u.pathname.split('/').filter(Boolean).pop() || ''; return decodeURIComponent(last).replace(/\\.html?$/i, ''); }
+    catch (_) { return ''; }
+  }`;
+
+/** Runs first in every preview (even static thumbnails), before the screen's own scripts. */
+export const NAV_GUARD = `
+(function(){
+  var guess = ${GUESS_FN};
+  window.__dwGuess = guess;
+  function go(u){ try { parent.postMessage({ __dw: true, type: 'nav-attempt', to: guess(u) }, '*'); } catch (_) {} }
+  window.__dwLoc = { set href(v){ go(v); }, get href(){ return location.href; }, assign: go, replace: go, reload: function(){} };
+  window.open = function(){ return null; };
+})();`;
+
 // Injected into every preview iframe. Talks to the parent only via postMessage.
 const BRIDGE = `
 (function(){
@@ -44,7 +76,12 @@ const BRIDGE = `
     var nav = e.target.closest && e.target.closest('[data-nav]');
     if (nav) { e.preventDefault(); parent.postMessage({ __dw: true, type: 'nav', to: nav.getAttribute('data-nav') }, '*'); return; }
     var a = e.target.closest && e.target.closest('a[href]');
-    if (a) e.preventDefault();
+    if (a) {
+      e.preventDefault();
+      var href = a.getAttribute('href') || '';
+      // plain links to another screen ("detail.html", "#detail") still work as prototype navigation
+      if (href && href !== '#' && !/^(javascript|mailto|tel):/i.test(href)) parent.postMessage({ __dw: true, type: 'nav-attempt', to: window.__dwGuess ? window.__dwGuess(href) : '' }, '*');
+    }
   }, true);
   document.addEventListener('submit', function(e){ e.preventDefault(); }, true);
   window.addEventListener('message', function(e){
@@ -67,10 +104,11 @@ export function buildPreviewDoc(
   return `<!doctype html><html lang="${opts.lang ?? 'ko'}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${CSP}">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>${NAV_GUARD}</script>
 <script src="https://cdn.tailwindcss.com"></script>
 ${fonts}
 <style id="dw-tokens">${css}</style>
-</head><body>${html}${bridge}</body></html>`;
+</head><body>${neutralizeNavigation(html)}${bridge}</body></html>`;
 }
 
 /** A compact text summary of a screen for prompts (P4 consistency, P7 export). */

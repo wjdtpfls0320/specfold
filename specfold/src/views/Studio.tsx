@@ -211,6 +211,13 @@ export default function Studio() {
     if (exists) setCur(to);
     else notify(t('studio.navMissing', { id: to }));
   }, []);
+  const onNavAttempt = useCallback((to: string) => {
+    const screens = useStore.getState().project?.screens ?? [];
+    const hit = screens.find((s) => s.id === to) ?? screens.find((s) => to && (s.id.includes(to) || to.includes(s.id)));
+    if (hit) setCur(hit.id);
+    else notify(t('studio.navBlocked'));
+  }, []);
+  const onEscape = useCallback(() => notify(t('studio.escaped')), []);
   const onSelect = useCallback((el: SelectedEl) => { setSel(el); setScope('element'); setTab((x) => (x === 'log' ? 'chat' : x)); }, []);
 
   const saveSnapshot = () =>
@@ -364,7 +371,7 @@ export default function Studio() {
                   return (
                     <div className="device" style={{ width: w * s, height: h * s }}>
                       <Preview html={live ? liveHtml : screen.html} tokens={tk} mode={live ? 'static' : mode} dark={dark} lang={p.contentLang}
-                        onNav={onNav} onSelect={onSelect} title={screen.name}
+                        onNav={onNav} onSelect={onSelect} onNavAttempt={onNavAttempt} onEscape={onEscape} title={screen.name}
                         style={{ width: w, height: h, transform: `scale(${s})`, transformOrigin: '0 0' }} />
                     </div>
                   );

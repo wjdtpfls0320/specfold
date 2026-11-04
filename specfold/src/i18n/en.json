@@ -197,6 +197,8 @@
     "fallback": "The partial edit didn't fit — fetching the whole screen instead…",
     "newScreens": "Creating new screens: {{names}}",
     "navMissing": "Screen “{{id}}” doesn't exist yet",
+    "navBlocked": "A link in the screen tried to leave the preview, so it was blocked. Give that button a screen link (data-nav) to navigate.",
+    "escaped": "The preview jumped to another address, so the screen was reloaded.",
     "needDirection": "Choose a design direction first.",
     "logEmpty": "No changes yet",
     "adj": {
