@@ -35,7 +35,19 @@ export function cleanScreenHtml(html: string) {
   let s = html.trim().replace(/^```(?:html)?\s*/i, '').replace(/```\s*$/, '');
   const body = s.match(/<body[^>]*>([\s\S]*?)(<\/body>|$)/i);
   if (body) s = body[1];
-  return s.replace(/<script[^>]+src=[^>]*><\/script>/gi, '').trim();
+  return repairHtml(s.replace(/<script[^>]+src=[^>]*><\/script>/gi, '').trim());
+}
+
+/**
+ * Let the browser's HTML parser close whatever a cut-off reply left open (an unclosed tag,
+ * attribute quote or comment). Otherwise the preview's own script after the screen gets
+ * swallowed into that open attribute/element and shows up on screen as raw code.
+ */
+export function repairHtml(html: string) {
+  if (typeof document === 'undefined' || !html) return html;
+  const t = document.createElement('template');
+  t.innerHTML = html;
+  return t.innerHTML;
 }
 
 export function detectLang(text: string): 'ko' | 'en' {

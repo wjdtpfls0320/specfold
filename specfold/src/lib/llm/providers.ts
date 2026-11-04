@@ -16,6 +16,8 @@ export interface StreamOpts {
   json?: boolean;
   signal?: AbortSignal;
   onToken?: (chunk: string, full: string) => void;
+  /** Called once when the reply ended because it hit the output-length limit. */
+  onTruncated?: () => void;
 }
 
 export interface ProviderInfo {
@@ -138,6 +140,7 @@ export async function streamChat(s: ProviderSettings, messages: LLMMessage[], op
       try {
         const j = JSON.parse(d);
         if (j.type === 'content_block_delta' && j.delta?.type === 'text_delta') push(j.delta.text);
+        if (j.type === 'message_delta' && j.delta?.stop_reason === 'max_tokens') opts.onTruncated?.();
         if (j.type === 'error') throw new Error(j.error?.message);
       } catch (e) {
         if (e instanceof Error && !(e instanceof SyntaxError)) throw e;
@@ -176,6 +179,7 @@ export async function streamChat(s: ProviderSettings, messages: LLMMessage[], op
         const j = JSON.parse(d);
         const parts = j.candidates?.[0]?.content?.parts ?? [];
         for (const p of parts) if (p.text) push(p.text);
+        if (j.candidates?.[0]?.finishReason === 'MAX_TOKENS') opts.onTruncated?.();
       } catch {
         /* partial */
       }
@@ -202,6 +206,7 @@ export async function streamChat(s: ProviderSettings, messages: LLMMessage[], op
     try {
       const j = JSON.parse(d);
       push(j.choices?.[0]?.delta?.content ?? '');
+      if (j.choices?.[0]?.finish_reason === 'length') opts.onTruncated?.();
     } catch {
       /* partial */
     }

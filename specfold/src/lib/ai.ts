@@ -122,6 +122,35 @@ export async function aiReference(p: Project, ctx: Ctx, refText: string, refImag
   return d;
 }
 
+/**
+ * Stream a whole screen of HTML. Long screens can hit the output limit and stop mid-tag; ask the
+ * model to continue from where it stopped (up to 3 times). If it is still unfinished, fail instead
+ * of saving a half-built screen.
+ */
+async function streamScreen(ctx: Ctx, system: string, msg: LLMMessage): Promise<string> {
+  let full = '';
+  for (let round = 0; round < 4; round++) {
+    let truncated = false;
+    const messages: LLMMessage[] = round === 0 ? [msg] : [
+      msg,
+      { role: 'assistant', content: full.trimEnd() },
+      { role: 'user', content: '출력이 길이 제한으로 중간에 끊겼어. 끊긴 바로 다음 글자부터 이어서 출력해. 이미 쓴 부분은 반복하지 말고, 인사말·설명·코드펜스 없이 이어지는 내용만 출력해.' },
+    ];
+    const prev = full;
+    const part = await streamChat(ctx.settings, messages, {
+      system, model: ctx.settings.strongModel, maxTokens: 16000, signal: ctx.signal,
+      onToken: (chunk) => ctx.onToken?.(chunk, prev + chunk),
+      onTruncated: () => { truncated = true; },
+    });
+    full = round === 0 ? part : full.trimEnd() + part.replace(/^```(?:html)?\s*/i, '');
+    const unfinished = truncated || (/<screen>/.test(full) && !/<\/screen>/.test(full));
+    if (!unfinished) return full;
+  }
+  throw new Error(ctx.uiLang === 'en'
+    ? 'The screen was too long and got cut off before it finished. Try again, or ask for a simpler screen.'
+    : '화면이 너무 길어서 끝까지 만들지 못하고 끊겼어요. 다시 만들거나 조금 더 단순하게 요청해 주세요.');
+}
+
 // P4
 export async function aiScreen(p: Project, screen: SpecScreen, ctx: Ctx, extra = ''): Promise<{ html: string; notes: string }> {
   const others = p.screens.filter((s) => s.status === 'done' && s.id !== screen.id && s.html);
@@ -140,7 +169,7 @@ export async function aiScreen(p: Project, screen: SpecScreen, ctx: Ctx, extra =
     screenJson: JSON.stringify(screen),
     extra: extra ? `\n<추가요청>${extra}</추가요청>` : '',
   });
-  const out = await streamChat(ctx.settings, [userMsg(msg)], { system: sys, model: ctx.settings.strongModel, maxTokens: 16000, signal: ctx.signal, onToken: ctx.onToken });
+  const out = await streamScreen(ctx, sys, userMsg(msg));
   const html = cleanScreenHtml(extractTag(out, 'screen') ?? out);
   return { html, notes: extractTag(out, 'design-notes') ?? '' };
 }
@@ -181,9 +210,7 @@ export async function aiEdit(
 export async function aiEditFull(p: Project, ctx: Ctx, request: string, screenId: string): Promise<string> {
   const screen = p.screens.find((s) => s.id === screenId)!;
   const sys = designSystem(p, ctx, P.P5_FULL_SYSTEM);
-  const out = await streamChat(ctx.settings, [userMsg(`<요청>${request}</요청>\n<DesignTokens>${JSON.stringify(p.tokens)}</DesignTokens>\n<현재화면>${screen.html}</현재화면>`)], {
-    system: sys, model: ctx.settings.strongModel, maxTokens: 16000, signal: ctx.signal, onToken: ctx.onToken,
-  });
+  const out = await streamScreen(ctx, sys, userMsg(`<요청>${request}</요청>\n<DesignTokens>${JSON.stringify(p.tokens)}</DesignTokens>\n<현재화면>${screen.html}</현재화면>`));
   return cleanScreenHtml(extractTag(out, 'screen') ?? out);
 }
 

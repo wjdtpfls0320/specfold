@@ -1,5 +1,6 @@
 import type { DesignTokens } from './types';
 import { googleFontsUrl, tokensToCss } from './tokens';
+import { repairHtml } from './util';
 
 // Only these external origins may load inside the sandboxed preview (기획서 §12).
 const CSP = [
@@ -151,7 +152,7 @@ export function buildPreviewDoc(
 <script src="https://cdn.tailwindcss.com"></script>
 ${fonts}
 <style id="dw-tokens">${css}</style>
-</head><body>${neutralizeNavigation(html)}${bridge}</body></html>`;
+</head><body>${neutralizeNavigation(repairHtml(html))}${bridge}</body></html>`;
 }
 
 /** A compact text summary of a screen for prompts (P4 consistency, P7 export). */

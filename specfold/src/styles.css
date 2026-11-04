@@ -99,8 +99,9 @@ h4 { font-weight: 700; }
 .btn.ghost:hover:not(:disabled) { transform: none; box-shadow: none; border-color: var(--ink); background: var(--sheet); }
 .link { border: 0; background: none; padding: 0; color: var(--pencil); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; cursor: pointer; font-size: inherit; }
 .chip {
-  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px;
-  border: var(--bw) solid var(--ink); border-radius: 999px; background: var(--sheet); cursor: pointer; font-size: 13px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 4px 12px; max-width: 100%;
+  border: var(--bw) solid var(--ink); border-radius: 16px; background: var(--sheet); cursor: pointer;
+  font-size: 13px; font-weight: 700; line-height: 1.4; text-align: left; white-space: normal;
 }
 .chip:hover { background: var(--ink); color: var(--sheet); }
 .chip.on { background: var(--ink); color: var(--sheet); }
