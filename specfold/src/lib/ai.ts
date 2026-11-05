@@ -127,7 +127,12 @@ export async function aiReference(p: Project, ctx: Ctx, refText: string, refImag
  * model to continue from where it stopped (up to 3 times). If it is still unfinished, fail instead
  * of saving a half-built screen.
  */
+// Output cap per request for screen HTML. Claude, OpenAI and Gemini's strong models all accept 32k;
+// OpenRouter routes and local models vary, so they keep the safer 16k (continuation covers the rest).
+const SCREEN_MAX_TOKENS: Record<string, number> = { claude: 32000, openai: 32000, gemini: 32000 };
+
 async function streamScreen(ctx: Ctx, system: string, msg: LLMMessage): Promise<string> {
+  const maxTokens = SCREEN_MAX_TOKENS[ctx.settings.provider] ?? 16000;
   let full = '';
   for (let round = 0; round < 4; round++) {
     let truncated = false;
@@ -138,7 +143,7 @@ async function streamScreen(ctx: Ctx, system: string, msg: LLMMessage): Promise<
     ];
     const prev = full;
     const part = await streamChat(ctx.settings, messages, {
-      system, model: ctx.settings.strongModel, maxTokens: 16000, signal: ctx.signal,
+      system, model: ctx.settings.strongModel, maxTokens, signal: ctx.signal,
       onToken: (chunk) => ctx.onToken?.(chunk, prev + chunk),
       onTruncated: () => { truncated = true; },
     });
