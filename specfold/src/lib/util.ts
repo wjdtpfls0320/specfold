@@ -20,9 +20,63 @@ export function extractJson<T = any>(text: string): T {
     }
     if (ch === '"') inStr = true;
     else if (ch === open) depth++;
-    else if (ch === close && --depth === 0) return JSON.parse(s.slice(start, i + 1));
+    else if (ch === close && --depth === 0) return parseLenient(s.slice(start, i + 1));
   }
-  return JSON.parse(s.slice(start));
+  return parseLenient(s.slice(start));
+}
+
+/** JSON.parse, falling back to a repaired copy when the model slipped (trailing commas, comments, cut-off end). */
+function parseLenient(s: string) {
+  try {
+    return JSON.parse(s);
+  } catch (err) {
+    try {
+      return JSON.parse(repairJson(s));
+    } catch {
+      throw err;
+    }
+  }
+}
+
+/**
+ * Fix the mistakes models make most: trailing commas, // and /* *\/ comments, raw newlines in strings,
+ * and output cut off mid-way (closes the open string and brackets, dropping a dangling key or comma).
+ */
+export function repairJson(s: string): string {
+  let out = '';
+  const stack: string[] = [];
+  let inStr = false, esc = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === '"') inStr = false;
+      else if (ch === '\n') { out += '\\n'; continue; }
+      else if (ch === '\r') continue;
+      out += ch;
+      continue;
+    }
+    if (ch === '/' && s[i + 1] === '/') { while (i < s.length && s[i] !== '\n') i++; continue; }
+    if (ch === '/' && s[i + 1] === '*') { const e = s.indexOf('*/', i + 2); i = e < 0 ? s.length : e + 1; continue; }
+    if (ch === '"') inStr = true;
+    else if (ch === '{' || ch === '[') stack.push(ch === '{' ? '}' : ']');
+    else if (ch === '}' || ch === ']') { out = out.replace(/,\s*$/, ''); stack.pop(); }
+    out += ch;
+  }
+  if (inStr) out += esc ? '\\"' : '"';
+  if (stack.length) {
+    // Cut off: drop whatever can't stand on its own (a trailing comma, a key with no value, a bare colon).
+    let prev;
+    do {
+      prev = out;
+      out = out.replace(/\s+$/, '').replace(/,$/, '').replace(/"(?:[^"\\]|\\.)*"\s*:$/, '').replace(/:$/, '');
+      // A lone string right after `{` or `,` inside an object is a key whose value never came.
+      if (stack[stack.length - 1] === '}') out = out.replace(/([{,])\s*"(?:[^"\\]|\\.)*"$/, '$1');
+    } while (out !== prev);
+    while (stack.length) out = out.replace(/,\s*$/, '') + stack.pop();
+  }
+  return out;
 }
 
 export function extractTag(text: string, tag: string): string | null {

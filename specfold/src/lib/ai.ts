@@ -26,9 +26,22 @@ function userMsg(text: string, imgs: LLMPart[] = []): LLMMessage {
   return { role: 'user', content: imgs.length ? [...imgs, { type: 'text', text }] : text };
 }
 
-/** Run a JSON-returning prompt, retrying once with "JSON만 다시 출력" on parse failure (design-prompts §9). */
+/**
+ * Run a JSON-returning prompt. If the reply hit the output limit, ask again once with double the room;
+ * if it still won't parse, retry once with "JSON만 다시 출력" (design-prompts §9).
+ */
 async function askJson<T>(ctx: Ctx, model: string, system: string, msg: LLMMessage, maxTokens = 8000): Promise<T> {
-  const first = await streamChat(ctx.settings, [msg], { system, model, json: true, maxTokens, signal: ctx.signal, onToken: ctx.onToken });
+  let truncated = false;
+  const ask = () => streamChat(ctx.settings, [msg], {
+    system, model, json: true, maxTokens, signal: ctx.signal, onToken: ctx.onToken,
+    onTruncated: () => { truncated = true; },
+  });
+  let first = await ask();
+  if (truncated) {
+    truncated = false;
+    maxTokens = Math.max(maxTokens, Math.min(maxTokens * 2, SCREEN_MAX_TOKENS[ctx.settings.provider] ?? 16000));
+    first = await ask();
+  }
   try {
     return extractJson<T>(first);
   } catch {
