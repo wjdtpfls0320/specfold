@@ -22,7 +22,7 @@ API 키 없이도 홈의 **완성 데모 둘러보기**로 전체 흐름(기획�
 | `src/lib/prompts.ts` | 프롬프트 팩 P1~P7 (`../design-prompts.md`와 동일) |
 | `src/lib/llm/providers.ts` | 5개 공급자 스트리밍 어댑터, 모델 등급 |
 | `src/lib/ai.ts` | 단계별 AI 호출, JSON 재시도 |
-| `src/lib/lint.ts` | 품질 검사 9개 규칙 |
+| `src/lib/lint.ts` | 품질 검사 10개 규칙 |
 | `src/lib/preview.ts` | 샌드박스 미리보기 문서 + 브리지 스크립트 (선택/프로토타입 모드) |
 | `src/lib/edits.ts` | `data-dw-id` 기준 찾아 바꾸기, 조정 패널 직접 수정 |
 | `src/lib/exportMd.ts` | AI 없이 기획서 v2 구조 조립 |

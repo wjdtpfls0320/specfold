@@ -161,7 +161,7 @@ const mypage = `${MOTION}
 <main data-dw-id="mypage-root" class="paper min-h-screen pb-24 bg-[var(--color-bg)] text-[var(--color-ink)]">
   <header data-dw-id="mypage-header" class="px-5 pt-8">
     <p class="text-[13px] text-[var(--color-ink-muted)]">이번 달 아낀 금액</p>
-    <p data-dw-id="mypage-saved" class="font-display text-[56px] font-bold leading-none mt-1">23,600<span class="text-[22px]">원</span></p>
+    <p data-dw-id="mypage-saved" class="font-display text-[48px] font-bold leading-none mt-1">23,600<span class="text-[24px]">원</span></p>
     <p data-dw-id="mypage-saved-sub" class="text-[13px] mt-2">빵 <b>14개</b>를 버려지지 않게 했어요</p>
   </header>
   <section data-dw-id="mypage-upcoming" class="mx-5 mt-7 p-4 border-2 border-[var(--color-accent)] rounded-[var(--radius-lg)]">

@@ -1,5 +1,5 @@
 // Prompt pack — mirrors design-prompts.md (P1–P7). {{var}} is filled by fill().
-export const PROMPT_VERSION = '0.2';
+export const PROMPT_VERSION = '0.3';
 
 export function fill(tpl: string, vars: Record<string, string>) {
   return tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => (k in vars ? vars[k] : `{{${k}}}`));
@@ -22,11 +22,17 @@ export const PRINCIPLES = `너는 독자적인 시각 언어를 가진 시니어
 - 아이콘 대신 이모지, 의미 없는 장식용 블롭/글래스모피즘
 - Lorem ipsum, "Feature 1", "John Doe", "Acme" 같은 가짜 콘텐츠
 - 여러 색을 고르게 섞은 무지개 팔레트
+- 숫자·글자 하나만 유독 크게 키우는 것: 건수·금액·통계·날짜·순번을 주변 글자의 몇 배로 키우거나("2건"에서 "2"만 거대하게), 화면·카드마다 거대 숫자를 반복하는 것
 
 [반드시 할 것]
 1. 타이포그래피가 디자인의 중심이다
    - 개성 있는 디스플레이 폰트 하나를 정하고 확실하게 쓴다
-   - 제목과 본문의 크기·굵기 차이를 크게 둔다 (예: 제목 56px/800, 본문 16px/400)
+   - 제목과 본문의 위계는 굵기·색·여백으로 먼저 만들고, 크기 차이는 토큰 scale 안에서만 둔다 (예: 제목 40px/800, 본문 16px/400)
+   - 글자 크기는 DesignTokens.scale의 가장 큰 값을 넘지 않는다. text-7xl 이상, vw·clamp로 키운 글자, scale 밖의 큰 크기를 만들지 마라
+   - scale의 가장 큰 단계는 화면당 한 곳(대표 제목)에만 쓴다
+   - 숫자(건수·금액·통계·날짜·순번)는 같은 화면의 제목 글자보다 크게 쓰지 않는다. 숫자 자체가 그 화면의 대표 제목일 때만 가장 큰 단계를 쓸 수 있고, 그런 숫자는 화면당 하나뿐이다. 목록·카드마다 반복하지 마라
+   - 숫자와 단위("2건", "4,000원", "38%")는 한 덩어리로 읽혀야 한다. 숫자는 단위 글자의 2배를 넘지 않는다
+   - 숫자를 강조하고 싶으면 크기 대신 굵기·강조색·위치·여백을 쓴다
    - 한글 콘텐츠면 한글 지원 폰트를 반드시 따로 지정한다. 영문 폰트는 한글을 지원하지 않는다
    - 폰트는 Google Fonts에서 불러올 수 있는 것만 쓴다
 2. 색
@@ -34,7 +40,7 @@ export const PRINCIPLES = `너는 독자적인 시각 언어를 가진 시니어
    - 모든 색은 CSS 변수(토큰)로만 쓴다. 토큰 밖의 색을 만들지 마라
    - 글자/배경 명암 대비 4.5:1 이상 (큰 글자 3:1 이상)
 3. 레이아웃
-   - 이 서비스의 콘텐츠 우선순위에서 레이아웃을 끌어낸다. 가장 중요한 정보가 가장 크고 먼저 보여야 한다
+   - 이 서비스의 콘텐츠 우선순위에서 레이아웃을 끌어낸다. 가장 중요한 정보가 가장 먼저, 가장 또렷하게 보여야 한다 (크기만 키우지 말고 위치·굵기·색·여백으로)
    - 비대칭, 큰 여백과 촘촘한 영역의 대비, 그리드를 깨는 요소 하나 등으로 리듬을 만든다
    - 카드가 필요하면 카드마다 역할에 맞게 다르게 처리한다 (선만, 배경색만, 테두리 없음 등)
 4. 배경과 깊이
@@ -50,7 +56,8 @@ export const PRINCIPLES = `너는 독자적인 시각 언어를 가진 시니어
    - contentLanguage가 ko이면 한글 지원 폰트를 반드시 지정한다
 
 [스스로 점검]
-결과를 내기 전에 마음속으로 물어라: "이 화면에서 서비스 이름만 바꾸면 다른 서비스에 그대로 쓸 수 있는가?" 그렇다면 다시 만들어라.`;
+결과를 내기 전에 마음속으로 물어라: "이 화면에서 서비스 이름만 바꾸면 다른 서비스에 그대로 쓸 수 있는가?" 그렇다면 다시 만들어라.
+그리고 한 번 더: "숫자나 글자 하나가 주변 글자보다 유독 크지 않은가? 그런 곳이 두 군데 이상이지 않은가?" 그렇다면 scale 안으로 줄여라.`;
 
 export const P1_SYSTEM = `너는 웹/앱 기획 코치다. 사용자가 쓴 기획서를 읽고, 디자인을 만들기에 충분한지 항목별로 판정한다.
 비판하지 말고 짧고 친절하게 안내한다. 사용자는 디자인 전문가가 아니다.
@@ -114,7 +121,8 @@ export const TOKENS_SCHEMA = `DesignTokens 형식:
   "shadow": ["0 1px 0 rgba(0,0,0,.08)"],
   "motion": { "signature": "대표 움직임 설명" },
   "background": { "treatment": "배경 처리 설명" }
-}`;
+}
+scale은 글자 크기 단계(px)다. 작은 것부터 7개, 가장 큰 값은 64 이하. 화면의 어떤 글자도 이 최댓값보다 클 수 없다.`;
 
 export const P3_SYSTEM = `기획서를 바탕으로 서로 확실히 다른 디자인 방향 3개를 제안한다.
 
@@ -168,6 +176,7 @@ export const P4_SYSTEM = `확정된 디자인 토큰으로 화면 하나의 HTML
   변수: --color-bg --color-surface --color-ink --color-ink-muted --color-primary --color-accent --color-line --font-display --font-body --font-mono --radius-sm --radius-md --radius-lg --space
 - 색은 반드시 토큰 변수로만: bg-[var(--color-bg)], text-[var(--color-ink)] 처럼. hex 직접 사용 금지. Tailwind 기본 색 클래스(bg-blue-500 등) 금지
 - 폰트: font-[family-name:var(--font-display)], font-[family-name:var(--font-body)] 또는 style="font-family:var(--font-display)"
+- 글자 크기: text-[28px]처럼 px로 쓴다. DesignTokens.scale의 가장 큰 값이 상한이다 (text-7xl~9xl, vw, clamp로 그보다 키우지 마라). 제목급 크기는 scale 값에서 고르고, 숫자만 따로 키우지 않는다
 - 주요 요소마다 고유한 data-dw-id를 붙인다 (예: data-dw-id="home-hero-title"). 화면id-영역-역할 형식
 - 다른 화면으로 가는 버튼/링크에는 data-nav="화면id"를 붙인다. 이동 가능 화면: {{navTargets}}
 - 화면 이동은 data-nav로만 한다. href="다른파일.html", location.href/location.assign, window.open, form action으로 페이지를 바꾸지 마라 (미리보기가 깨진다). 링크가 필요하면 href="#"
@@ -234,7 +243,7 @@ data-dw-id와 data-nav는 모두 유지한다. 색은 토큰 변수만 쓴다.
 출력: <screen> 안에 <body> 안쪽 HTML만.`;
 
 export const QUICK_CHIPS: { id: string; ko: string; en: string; request: string }[] = [
-  { id: 'bolder', ko: '더 대담하게', en: 'Bolder', request: '제목 크기 대비를 더 키우고, 강조색 면적을 한 곳에 크게 써서 첫인상을 강하게. 요소 수는 늘리지 말 것' },
+  { id: 'bolder', ko: '더 대담하게', en: 'Bolder', request: '제목의 굵기·크기 대비를 scale 범위 안에서 더 키우고(숫자나 글자 하나만 따로 키우지 말 것), 강조색 면적을 한 곳에 크게 써서 첫인상을 강하게. 요소 수는 늘리지 말 것' },
   { id: 'airy', ko: '여백 넉넉하게', en: 'More breathing room', request: '섹션 간 여백을 1.5~2배로, 한 화면에 보이는 정보는 줄이고 우선순위 낮은 요소는 접거나 아래로' },
   { id: 'dense', ko: '정보 밀도 높게', en: 'Denser', request: '장식 여백을 줄이고 목록/표 형태로 한 화면에 더 많은 항목을 보여줌. 위계는 유지' },
   { id: 'less-ai', ko: '덜 AI 같게', en: 'Less AI-looking', request: '0장 원칙 기준으로 이 화면에서 가장 템플릿 같은 부분 2곳을 찾아 이 서비스만의 방식으로 다시 디자인' },
@@ -243,6 +252,7 @@ export const QUICK_CHIPS: { id: string; ko: string; en: string; request: string 
 
 export const P6_SYSTEM = `아래 HTML이 자동 품질 검사에서 다음 규칙을 위반했다. 위반한 부분만 고친다. 나머지 디자인은 그대로 유지한다.
 토큰으로 해결할 수 있는 문제(대비, 폰트)는 tokenChanges로 고친다.
+oversized-type 위반은 지적된 글자의 크기만 줄인다: 어떤 글자도 detail의 max 값을 넘지 않게, 숫자는 붙어 있는 단위 글자의 2배 이하로, 큰 숫자는 화면에 하나만 남긴다. 강조는 굵기·색으로 유지하고 레이아웃은 건드리지 않는다.
 출력: P5와 같은 edits JSON (specImpact.type은 none). JSON만:
 { "edits": [ { "screenId": "", "targetId": "", "replaceWith": "" } ], "tokenChanges": {}, "specImpact": { "type": "none", "summary": "" }, "note": "" }`;
 

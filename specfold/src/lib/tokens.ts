@@ -25,7 +25,17 @@ export const FONT_PAIRS: { display: string; body: string; mono?: string }[] = [
   { display: 'Unbounded', body: 'Young Serif' },
 ];
 
-export const isKoFont = (f: string) => KO_FONTS.some((k) => k.toLowerCase() === f.trim().toLowerCase());
+/** Hard ceiling for any type-scale step (px). Keeps "giant numeral" layouts out of generated screens. */
+export const MAX_TYPE_PX = 64;
+const DEFAULT_SCALE = [12, 14, 16, 20, 28, 40, 56];
+
+/** Largest font size a screen may use: the top of the token scale, never above MAX_TYPE_PX. */
+export function typeCap(t: DesignTokens) {
+  const s = (t.scale ?? []).filter((n) => n > 0);
+  return Math.min(MAX_TYPE_PX, s.length ? Math.max(...s) : DEFAULT_SCALE[DEFAULT_SCALE.length - 1]);
+}
+
+export const isKoFont =(f: string) => KO_FONTS.some((k) => k.toLowerCase() === f.trim().toLowerCase());
 
 const generic = (family: string) =>
   /myeongjo|batang|serif|hahmlet|song myung|newsreader|fraunces/i.test(family) && !/sans/i.test(family) ? 'serif' : 'sans-serif';
@@ -39,7 +49,7 @@ function colorVars(c: ColorSet) {
 export function tokensToCss(t: DesignTokens, opts: { dark?: boolean } = {}) {
   const c = opts.dark && t.color.dark ? t.color.dark : t.color;
   const mono = t.font.mono?.family || t.font.body.family;
-  const scale = (t.scale?.length ? t.scale : [12, 14, 16, 20, 28, 40, 56]).map((s, i) => `--text-${i}:${s}px;`).join('');
+  const scale = (t.scale?.length ? t.scale : DEFAULT_SCALE).map((s, i) => `--text-${i}:${s}px;`).join('');
   const shadows = (t.shadow || []).map((s, i) => `--shadow-${i}:${s};`).join('');
   return `:root{${colorVars(c)}--font-display:${q(t.font.display.family)};--font-body:${q(t.font.body.family)};--font-mono:'${mono}', monospace;--radius-sm:${t.radius.sm}px;--radius-md:${t.radius.md}px;--radius-lg:${t.radius.lg}px;--space:${t.space}px;${scale}${shadows}}
 body{background:var(--color-bg);color:var(--color-ink);font-family:var(--font-body);margin:0;}
@@ -128,7 +138,7 @@ export function normalizeTokens(raw: any, fallback: DesignTokens = PRESETS[0].to
   const out: DesignTokens = {
     color: { bg: pick('bg'), surface: pick('surface'), ink: pick('ink'), inkMuted: pick('inkMuted'), primary: pick('primary'), accent: pick('accent'), line: pick('line') },
     font: { display: font(t.font?.display, fallback.font.display), body: font(t.font?.body, fallback.font.body) },
-    scale: Array.isArray(t.scale) && t.scale.length ? t.scale.map(Number) : fallback.scale,
+    scale: Array.isArray(t.scale) && t.scale.length ? t.scale.map((n: unknown) => Math.min(Number(n), MAX_TYPE_PX)) : fallback.scale,
     space: Number(t.space) || fallback.space,
     radius: { sm: num(t.radius?.sm, fallback.radius.sm), md: num(t.radius?.md, fallback.radius.md), lg: num(t.radius?.lg, fallback.radius.lg) },
     shadow: Array.isArray(t.shadow) ? t.shadow.map(String) : fallback.shadow,
@@ -188,7 +198,7 @@ export const PRESETS = [
     '사진이 살짝 기울어진 채 내려앉음', '크래프트지 질감 + 따뜻한 방사형 그라데이션'),
   preset({ ko: '스위스 그리드', en: 'Swiss Grid' }, 'light', ['Gothic A1', [900]], ['Gothic A1', [400]],
     ['#F2F2EF', '#FFFFFF', '#141414', '#555555', '#141414', '#E3241B', '#CFCFCA'],
-    { ko: '엄격한 12단 그리드, 큰 숫자, 비대칭', en: 'Strict 12-col grid, big numerals, asymmetry' }, [0, 0, 2],
+    { ko: '엄격한 12단 그리드, 굵은 숫자, 비대칭', en: 'Strict 12-col grid, bold numerals, asymmetry' }, [0, 0, 2],
     '그리드 선이 먼저 그려지고 내용이 채워짐', '희미한 12단 컬럼 가이드'),
   preset({ ko: '고요한 숲', en: 'Quiet Forest' }, 'mid', ['Nanum Myeongjo', [800]], ['IBM Plex Sans KR', [400]],
     ['#E4E8E1', '#EEF1EB', '#1F2A24', '#4F5C54', '#1F2A24', '#7A5C2E', '#C5CEC4'],

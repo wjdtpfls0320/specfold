@@ -69,7 +69,7 @@ export default function Studio() {
   const specScreen = p.spec?.screens.find((s) => s.id === screen?.id);
   const curRef = useRef('');
   curRef.current = screen?.id ?? '';
-  const lint = useMemo(() => lintProject(p.screens, p.tokens, p.contentLang), [p.screens, p.tokens, p.contentLang]);
+  const lint = useMemo(() => lintProject(p.screens, p.tokens, p.contentLang, p.spec?.platform), [p.screens, p.tokens, p.contentLang, p.spec?.platform]);
 
   useEffect(() => { if (!screen && p.screens[0]) setCur(p.screens[0].id); }, [p.screens.length]);
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function Studio() {
         if (s) Object.assign(s, { html, notes, status: 'done', updatedAt: Date.now() });
       }, { undoable: true });
       const fresh = useStore.getState().project!;
-      const v = lintScreen(fresh.screens.find((x) => x.id === sc.id)!, fresh.tokens!, fresh.contentLang).filter((x) => x.severity === 'fix');
+      const v = lintScreen(fresh.screens.find((x) => x.id === sc.id)!, fresh.tokens!, fresh.contentLang, fresh.spec?.platform).filter((x) => x.severity === 'fix');
       if (v.length) {
         const r = await aiFix(fresh, { ...ctx, onToken: undefined }, sc.id, v);
         let failed: string[] = [];

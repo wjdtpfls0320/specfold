@@ -183,6 +183,7 @@ export interface LintViolation {
     | 'contrast'
     | 'card-overuse'
     | 'template-layout'
+    | 'oversized-type'
     | 'fake-content'
     | 'emoji-icon'
     | 'missing-ko-font';
