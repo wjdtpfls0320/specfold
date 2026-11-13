@@ -1,21 +1,21 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store';
-import { PRESETS, hueBucket, presetAsDirection, themeOf } from '../lib/tokens';
-import { aiDirections, aiReference } from '../lib/ai';
+import { themeOf } from '../lib/tokens';
+import { PRESETS, presetAsDirection } from '../lib/presets';
+import { aiReference } from '../lib/ai';
 import { useAI } from '../components/useAI';
 import Preview from '../components/Preview';
-import { recordUsage } from '../lib/db';
 import { lintTokens } from '../lib/lint';
 import { readAttachment } from '../lib/files';
 import type { DesignTokens, Direction } from '../lib/types';
 
-type Source = 'ai' | 'preset' | 'reference';
-interface Cand { key: string; source: Source; d: Direction }
+type Source = 'preset' | 'reference';
+interface Cand { key: string; source: Source; d: Direction; genre?: string }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-/** Fallback mini preview for presets/reference: the service's own name & first screen in the tokens. */
+/** Generic mini preview (reference directions, mixed tokens): the service's own name & first screen in the tokens. */
 function miniFor(name: string, summary: string, first: string) {
   return `<div style="padding:22px;min-height:440px;background:var(--color-bg)">
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--color-line);padding-bottom:10px">
@@ -27,17 +27,29 @@ function miniFor(name: string, summary: string, first: string) {
   <div style="margin-top:22px;display:grid;gap:8px">${[0, 1, 2].map(() => '<div style="height:44px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-sm)"></div>').join('')}</div></div>`;
 }
 
-function Card({ c, selected, onPick, mini, lang, scale = 0.98 }: { c: Cand; selected: boolean; onPick: () => void; mini: string; lang: string; scale?: number }) {
+function Card({ c, selected, onPick, mini, lang }: { c: Cand; selected: boolean; onPick: () => void; mini: string; lang: string }) {
   const { t } = useTranslation();
   const tk = c.d.tokens;
+  // the mini preview is drawn 400px wide; scale it to fill whatever width the card gets
+  const box = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.96);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const fit = () => el.clientWidth && setScale(el.clientWidth / 400);
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
     <div className="dir" role="button" tabIndex={0} aria-pressed={selected} onClick={onPick} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onPick()}>
-      <div className="mini">
+      <div className="mini" ref={box} style={{ height: Math.round(310 * scale) }}>
         <Preview html={c.d.miniPreviewHtml || mini} tokens={tk} mode="static" lang={lang} title={c.d.name}
           style={{ width: 400, height: 440, border: 0, transform: `scale(${scale})`, transformOrigin: '0 0', pointerEvents: 'none' }} />
       </div>
       <div className="body">
-        <span className="eyebrow">{t(`direction.src.${c.source}`)} · {themeOf(tk)}</span>
+        <span className="eyebrow">{c.genre ?? `${t(`direction.src.${c.source}`)} · ${themeOf(tk)}`}</span>
         <h3>{c.d.name}</h3>
         <span className="muted" style={{ fontSize: 13 }}>{c.d.mood}</span>
         <div className="swatches" aria-label="colors">
@@ -65,29 +77,30 @@ export default function DirectionView() {
   const p = project!;
   const lang = (i18n.language === 'en' ? 'en' : 'ko') as 'ko' | 'en';
   const ai = useAI();
-  const [tab, setTab] = useState<Source>(p.directions.length ? 'ai' : 'ai');
+  const [tab, setTab] = useState<Source>('preset');
   const [refText, setRefText] = useState('');
   const [refImgs, setRefImgs] = useState<string[]>([]);
   const [refDir, setRefDir] = useState<Direction | null>(null);
-  const [sel, setSel] = useState<string | null>(null);
+  // start on the preset the project already uses, if any
+  const [sel, setSel] = useState<string | null>(() => {
+    const cur = PRESETS.find((x) => x.name.ko === p.direction?.name || x.name.en === p.direction?.name);
+    return cur ? `preset-${cur.id}` : null;
+  });
   const [colorFrom, setColorFrom] = useState<string>('');
   const [fontFrom, setFontFrom] = useState<string>('');
 
-  const cands: Cand[] = useMemo(() => [
-    ...p.directions.map((d, i) => ({ key: `ai-${i}`, source: 'ai' as const, d })),
-    ...PRESETS.map((_, i) => ({ key: `preset-${i}`, source: 'preset' as const, d: presetAsDirection(i, lang) })),
-    ...(refDir ? [{ key: 'ref', source: 'reference' as const, d: refDir }] : []),
-  ], [p.directions, refDir, lang]);
+  const serviceName = p.specRaw.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? p.name;
+  const firstScreen = (p.spec?.screens[0]?.priority || p.spec?.summary || p.name).slice(0, 26);
+  const summary = (p.spec?.summary ?? '').slice(0, 70);
+  const mini = miniFor(serviceName, summary, firstScreen);
+  const cands: Cand[] = useMemo(() => {
+    const v = { name: serviceName, first: firstScreen, summary, cta: p.contentLang === 'ko' ? '시작하기' : 'Get started' };
+    return [
+      ...PRESETS.map((x) => ({ key: `preset-${x.id}`, source: 'preset' as const, genre: x.genre[lang], d: presetAsDirection(x, lang, v) })),
+      ...(refDir ? [{ key: 'ref', source: 'reference' as const, d: refDir }] : []),
+    ];
+  }, [refDir, lang, serviceName, firstScreen, summary, p.contentLang]);
   const byKey = (k: string) => cands.find((c) => c.key === k);
-  const firstScreen = p.spec?.screens[0]?.priority || p.spec?.summary || p.name;
-  const mini = miniFor(p.specRaw.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? p.name, p.spec?.summary ?? '', firstScreen.slice(0, 26));
-
-  const generate = () =>
-    ai.run('directions', async (ctx) => {
-      const ds = await aiDirections(useStore.getState().project!, ctx);
-      update((d) => { d.directions = ds; });
-      setSel('ai-0');
-    }).catch(() => {});
 
   const analyze = () =>
     ai.run('reference', async (ctx) => {
@@ -118,11 +131,11 @@ export default function DirectionView() {
       d.direction = {
         source: base.source,
         name: mixed ? `${base.d.name} + ${t('direction.mixed')}` : base.d.name,
-        rationale: [base.d.rationale, base.d.fontRationale, base.d.colorRationale].filter(Boolean).join(' '),
+        rationale: [base.d.mood, base.d.rationale, base.d.fontRationale, base.d.colorRationale].filter(Boolean).join(' · '),
+        ...(base.d.guide ? { guide: base.d.guide } : {}),
       };
       d.step = 'studio';
     }, { undoable: true });
-    await recordUsage([tk.font.display.family, tk.font.body.family], hueBucket(tk.color.accent), themeOf(tk));
     go({ name: 'project', id: p.id, step: 'studio' });
   };
 
@@ -140,20 +153,12 @@ export default function DirectionView() {
       </div>
 
       <div className="tabs" role="tablist">
-        {(['ai', 'preset', 'reference'] as const).map((s) => (
+        {(['preset', 'reference'] as const).map((s) => (
           <button key={s} role="tab" aria-selected={tab === s} onClick={() => setTab(s)}>{t(`direction.tab.${s}`)}</button>
         ))}
       </div>
 
-      {tab === 'ai' && (
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20 }}>
-          <button className="btn pencil" disabled={!!ai.busy || p.readonly} onClick={generate}>
-            {ai.busy === 'directions' ? t('direction.generating') : p.directions.length ? t('direction.regenerate') : t('direction.generate')}
-          </button>
-          <span className="muted" style={{ fontSize: 13 }}>{t('direction.aiHint')}</span>
-          {ai.busy && <button className="link" onClick={ai.cancel}>{t('common.cancel')}</button>}
-        </div>
-      )}
+      {tab === 'preset' && <p className="muted" style={{ margin: '-8px 0 20px', fontSize: 14 }}>{t('direction.presetHint', { n: PRESETS.length })}</p>}
       {tab === 'reference' && (
         <div className="sheet block" style={{ marginBottom: 20, display: 'grid', gap: 12 }}>
           <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t('direction.refHint')}</p>
@@ -179,8 +184,8 @@ export default function DirectionView() {
       {ai.busy && ai.stream && <pre className="mdview" style={{ maxHeight: 120, marginBottom: 16, border: '1px solid var(--line)' }}>{ai.stream.slice(-600)}</pre>}
 
       {list.length === 0 && !ai.busy && <p className="muted">{t(`direction.empty.${tab}`)}</p>}
-      <div className={tab === 'preset' ? 'presets unfold-seq' : 'dirs unfold-seq'}>
-        {list.map((c) => <Card key={c.key} c={c} selected={sel === c.key} onPick={() => setSel(c.key)} mini={mini} lang={p.contentLang} scale={tab === 'preset' ? 0.72 : 0.98} />)}
+      <div className="dirs unfold-seq">
+        {list.map((c) => <Card key={c.key} c={c} selected={sel === c.key} onPick={() => setSel(c.key)} mini={mini} lang={p.contentLang} />)}
       </div>
 
       {sel && (

@@ -1,5 +1,5 @@
 // Prompt pack — mirrors design-prompts.md (P1–P7). {{var}} is filled by fill().
-export const PROMPT_VERSION = '0.3';
+export const PROMPT_VERSION = '0.4';
 
 export function fill(tpl: string, vars: Record<string, string>) {
   return tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => (k in vars ? vars[k] : `{{${k}}}`));
@@ -124,49 +124,16 @@ export const TOKENS_SCHEMA = `DesignTokens 형식:
 }
 scale은 글자 크기 단계(px)다. 작은 것부터 7개, 가장 큰 값은 64 이하. 화면의 어떤 글자도 이 최댓값보다 클 수 없다.`;
 
-export const P3_SYSTEM = `기획서를 바탕으로 서로 확실히 다른 디자인 방향 3개를 제안한다.
-
-다르게 만들어야 하는 축 (3안이 최소 3개 축에서 서로 달라야 한다):
-- 테마: 밝음 / 어두움 / 중간톤(종이색, 컬러 배경)
-- 타이포 성격: 세리프 / 개성 있는 산세리프 / 디스플레이·장식 / 모노스페이스
-- 밀도: 여백 많음 / 보통 / 정보 촘촘
-- 레이아웃 원형: 에디토리얼(잡지) / 스위스 그리드 / 브루탈 / 카드 없는 리스트 / 큰 이미지 중심 / 대시보드형
-- 형태 언어: 직각 / 아주 둥근 / 선 위주 / 면 위주
-
-사용자가 최근 쓴 것 (가능하면 피하라):
-- 폰트: {{recentFonts}}
-- 주조색 계열: {{recentHues}}
-- 테마: {{recentThemes}}
-
-사용자가 피하고 싶다고 한 느낌: {{avoidKeywords}}
-
-각 안마다:
-- name: 방향 이름 (짧고 구체적, 예: "새벽 시장 신문", "형광 계기판")
-- mood: 한 줄 무드
-- rationale: 왜 이 서비스에 맞는지 2~3줄. 디자인을 모르는 사람도 이해하게 쓴다
-- tokens: DesignTokens 전체 (색은 hex, 폰트는 Google Fonts family 이름과 weight)
-- fontRationale, colorRationale: 폰트와 색을 고른 이유 각각 한 줄
-- layoutIdea: 메인 화면 레이아웃 아이디어 2~3줄
-- signatureMotion: 대표 움직임 하나
-- backgroundTreatment: 배경 처리 방식
-- miniPreviewHtml: 메인 화면 상단 부분의 축소 미리보기 HTML (400px 폭 기준, 토큰 CSS 변수 var(--color-bg) 등과 Tailwind 클래스 사용, 화면 문구는 {{contentLanguage}})
-
-${TOKENS_SCHEMA}
-
-모든 색 조합은 대비 4.5:1 이상인지 확인하고 contrastCheck에 주요 쌍의 대비값을 적는다.
-JSON만 출력한다: { "directions": [ ... 3개 ] }`;
-
-export const P3_USER = `<ProjectSpec>{{specJson}}</ProjectSpec>`;
-
 export const P3B_SYSTEM = `첨부한 참고 화면(스크린샷 또는 페이지 텍스트)에서 '분위기'만 추출해 DesignTokens로 바꾼다.
 - 로고, 고유 일러스트, 문구, 정확한 레이아웃은 복제하지 않는다
 - 추출 대상: 명도·채도 경향, 색 대비 방식, 타이포 성격(세리프/산세리프/굵기 대비), 여백 밀도, 형태 언어
 - 원본 폰트가 유료라면 같은 성격의 Google Fonts 대안을 고르고 이유를 적는다
 - 이 서비스(ProjectSpec)에 맞게 조정한 점을 adjustments에 적는다
+- guide에는 이 분위기를 화면으로 옮길 때 지킬 규칙을 "- 레이아웃: …" 형식의 불릿 3~5줄로 적는다 (레이아웃, 형태, 타이포, 배경, 피할 것)
 
 ${TOKENS_SCHEMA}
 
-JSON만 출력한다: { "name": "", "mood": "", "rationale": "", "tokens": {...}, "fontRationale": "", "colorRationale": "", "adjustments": "", "miniPreviewHtml": "" }`;
+JSON만 출력한다: { "name": "", "mood": "", "rationale": "", "tokens": {...}, "fontRationale": "", "colorRationale": "", "adjustments": "", "guide": "", "miniPreviewHtml": "" }`;
 
 export const P4_SYSTEM = `확정된 디자인 토큰으로 화면 하나의 HTML을 만든다.
 
@@ -185,6 +152,10 @@ export const P4_SYSTEM = `확정된 디자인 토큰으로 화면 하나의 HTML
 - 아이콘: 인라인 SVG (선 굵기 통일, stroke="currentColor"). 이모지 금지
 - 대표 움직임({{signatureMotion}})은 <style> 안 @keyframes로, prefers-reduced-motion 처리 포함
 - 스크립트는 화면 안 작은 상호작용(탭 전환, 토글)만. 외부 스크립트 금지
+
+[디자인 방향]
+사용자가 고른 스타일이다. 레이아웃·형태·장식·배경은 이 방향을 따른다. 위의 공통 원칙(글자 크기, 토큰, 금지 목록)과 부딪히면 공통 원칙이 우선한다.
+{{directionGuide}}
 
 [일관성]
 이미 만든 화면 요약을 참고해 헤더/내비게이션/버튼 스타일을 똑같이 맞춘다:
@@ -207,6 +178,7 @@ export const P5_SYSTEM = `사용자의 수정 요청을 현재 화면에 반영�
 
 [규칙]
 - 요청과 상관없는 부분은 절대 바꾸지 않는다
+- 새로 만들거나 고치는 부분은 <디자인방향>의 스타일(레이아웃·형태·장식)을 유지한다
 - edits의 targetId는 현재 화면에 실제로 있는 data-dw-id여야 하고, replaceWith는 그 요소 전체(바깥 태그 포함, 같은 data-dw-id 유지)다
 - 새 요소를 넣을 때는 감싸는 부모 요소를 targetId로 바꾼다. 새 요소에도 data-dw-id를 붙인다
 - 다른 화면으로 가는 요소에는 data-nav="화면id" (href로 다른 주소로 보내거나 location을 바꾸는 스크립트 금지)
@@ -235,6 +207,7 @@ export const P5_USER = `<요청>{{userRequest}}</요청>
 <현재화면 id="{{screenId}}">{{screenHtml}}</현재화면>
 <다른화면목록>{{otherScreens}}</다른화면목록>
 <DesignTokens>{{tokensJson}}</DesignTokens>
+<디자인방향>{{directionGuide}}</디자인방향>
 <ProjectSpec>{{specJson}}</ProjectSpec>`;
 
 /** Fallback when find-replace edits fail to apply: ask for the whole screen. */

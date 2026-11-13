@@ -24,7 +24,7 @@
   "home": {
     "eyebrow": "Spec → Design → Spec",
     "title": "Unfold a spec into screens, then <em>fold</em> it back into a better spec",
-    "lede": "Drop in a rough product spec. AI proposes three genuinely different design directions and builds a clickable, multi-screen prototype. Every change you make is logged and folded back into an updated spec at the end.",
+    "lede": "Drop in a rough product spec, pick one of the distinct design styles, and get a clickable, multi-screen prototype. Every change you make is logged and folded back into an updated spec at the end.",
     "demo": "Explore the finished demo",
     "demoTag": "NO API KEY · 1 CLICK",
     "demoSub": "Open a finished prototype and click between its screens.",
@@ -60,7 +60,7 @@
     },
     "advanced": "Advanced",
     "advancedNote": "Enter model names exactly as your provider's docs list them. Change the URL if you use a proxy or company gateway.",
-    "weakWarn": "This model may produce weak designs. Prefer the style presets when choosing a direction.",
+    "weakWarn": "This model may produce weak designs. If screens come out plain, try a stronger model.",
     "persist": "Remember key",
     "session": "This session only (cleared when the tab closes)",
     "device": "On this device",
@@ -220,29 +220,22 @@
   },
   "direction": {
     "title": "Pick a design direction",
-    "lede": "The colors, fonts and spacing chosen here (design tokens) are shared by every screen. You can still tweak them later in the Adjust panel.",
+    "lede": "Pick a style: its colors, fonts and spacing (design tokens) and its style brief are shared by every screen. You can still tweak them later in the Adjust panel.",
     "keep": "Keep current direction",
     "tab": {
-      "ai": "AI: 3 directions",
       "preset": "Style presets",
       "reference": "Reference"
     },
     "src": {
-      "ai": "AI",
       "preset": "Preset",
       "reference": "Reference"
     },
-    "generate": "Propose 3 directions",
-    "regenerate": "Propose again",
-    "generating": "Building three distinct directions…",
-    "aiHint": "They differ on at least three of: theme, type personality, density, layout. Fonts and colors you used recently are avoided.",
     "refHint": "Describe a site or upload screenshots; only the mood is extracted into tokens. Logos, copy and exact layouts are never copied.",
     "refPh": "e.g. I like this site's big photos and thin serif (URL or description)",
     "refUpload": "Upload screenshots",
     "analyze": "Analyze mood",
     "analyzing": "Analyzing…",
     "empty": {
-      "ai": "No proposals yet — press the button above.",
       "preset": "",
       "reference": "No reference analyzed yet."
     },
@@ -257,7 +250,8 @@
     "pickOne": "Pick one direction",
     "picked": "Picked: {{name}}",
     "confirm": "Use this direction",
-    "tokenIssues": "{{n}} token issue(s): {{detail}}. Fix them from the Studio's quality check."
+    "tokenIssues": "{{n}} token issue(s): {{detail}}. Fix them from the Studio's quality check.",
+    "presetHint": "{{n}} styles that do not overlap. Pick one and every screen follows it — not just colors and fonts, but layout and shapes too."
   },
   "studio": {
     "screens": "Screens",

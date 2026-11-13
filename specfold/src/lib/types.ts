@@ -77,6 +77,8 @@ export interface Direction {
   signatureMotion?: string;
   backgroundTreatment?: string;
   miniPreviewHtml?: string;
+  /** Style brief (layout, shapes, type, things to avoid) sent to the model with every screen. */
+  guide?: string;
   contrastCheck?: Record<string, number | string>;
 }
 
@@ -133,9 +135,10 @@ export interface Project {
   answers: Record<string, string>;
   check?: CheckResult;
   spec: ProjectSpec | null;
+  /** Legacy: directions an AI proposed in older versions. No longer generated or shown. */
   directions: Direction[];
   tokens: DesignTokens | null;
-  direction: { source: 'ai' | 'preset' | 'reference'; name: string; rationale: string } | null;
+  direction: { source: 'ai' | 'preset' | 'reference'; name: string; rationale: string; guide?: string } | null;
   screens: Screen[];
   changeLog: ChangeEntry[];
   snapshots: Snapshot[];

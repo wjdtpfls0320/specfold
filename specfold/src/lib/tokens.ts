@@ -1,4 +1,4 @@
-import type { ColorSet, DesignTokens, Direction } from './types';
+import type { ColorSet, DesignTokens } from './types';
 
 export const KO_FONTS = [
   'Hahmlet', 'IBM Plex Sans KR', 'Gowun Batang', 'Gowun Dodum', 'Black Han Sans', 'Gothic A1', 'Nanum Myeongjo',
@@ -18,6 +18,13 @@ export const FONT_PAIRS: { display: string; body: string; mono?: string }[] = [
   { display: 'Do Hyeon', body: 'Gothic A1' },
   { display: 'Song Myung', body: 'Nanum Gothic' },
   { display: 'Noto Serif KR', body: 'IBM Plex Sans KR', mono: 'IBM Plex Mono' },
+  { display: 'Nanum Gothic', body: 'Nanum Gothic' },
+  { display: 'Jua', body: 'Gowun Dodum' },
+  { display: 'Nanum Gothic Coding', body: 'Nanum Gothic Coding', mono: 'Nanum Gothic Coding' },
+  { display: 'Yeon Sung', body: 'Noto Serif KR' },
+  { display: 'Gaegu', body: 'Gowun Dodum' },
+  { display: 'Gugi', body: 'Orbit' },
+  { display: 'Bagel Fat One', body: 'Gothic A1' },
   { display: 'Fraunces', body: 'Newsreader' },
   { display: 'Instrument Serif', body: 'Familjen Grotesk' },
   { display: 'Bricolage Grotesque', body: 'Newsreader' },
@@ -130,7 +137,7 @@ export function hueBucket(hex: string) {
 }
 
 /** Normalizes a possibly-partial tokens object from an LLM into a full DesignTokens. */
-export function normalizeTokens(raw: any, fallback: DesignTokens = PRESETS[0].tokens): DesignTokens {
+export function normalizeTokens(raw: any, fallback: DesignTokens = FALLBACK_TOKENS): DesignTokens {
   const t = raw || {};
   const c = t.color || {};
   const pick = (k: keyof ColorSet) => (typeof c[k] === 'string' && hexToRgb(c[k]) ? c[k] : fallback.color[k]);
@@ -157,67 +164,17 @@ export function normalizeTokens(raw: any, fallback: DesignTokens = PRESETS[0].to
 }
 const num = (v: any, fb: number) => (v === undefined || v === null || isNaN(Number(v)) ? fb : Number(v));
 
-function preset(
-  name: { ko: string; en: string }, theme: string, display: [string, number[]], body: [string, number[]],
-  colors: [string, string, string, string, string, string, string], feature: { ko: string; en: string },
-  radius: [number, number, number], motion: string, bg: string, mono?: string,
-): { name: { ko: string; en: string }; theme: string; feature: { ko: string; en: string }; tokens: DesignTokens } {
-  const [bgc, surface, ink, inkMuted, primary, accent, line] = colors;
-  return {
-    name, theme, feature,
-    tokens: {
-      color: { bg: bgc, surface, ink, inkMuted, primary, accent, line },
-      font: { display: { family: display[0], weights: display[1] }, body: { family: body[0], weights: body[1] }, ...(mono ? { mono: { family: mono, weights: [400, 500] } } : {}) },
-      scale: [12, 14, 16, 20, 28, 40, 56],
-      space: 8,
-      radius: { sm: radius[0], md: radius[1], lg: radius[2] },
-      shadow: ['0 1px 0 rgba(0,0,0,.06)'],
-      motion: { signature: motion },
-      background: { treatment: bg },
-    },
-  };
-}
-
-// design-prompts.md §8
-export const PRESETS = [
-  preset({ ko: '종이 신문', en: 'Broadsheet' }, 'light', ['Hahmlet', [700, 900]], ['IBM Plex Sans KR', [400, 600]],
-    ['#F3EEE4', '#FBF8F2', '#1C1A16', '#5E584D', '#1C1A16', '#D9481C', '#D8D0C1'],
-    { ko: '굵은 세리프 제목, 가는 구분선, 단 나눔', en: 'Heavy serif headlines, hairline rules, columns' }, [2, 4, 8],
-    '제목이 위에서 아래로 인쇄되듯 차례로 나타남', '미세한 종이 노이즈 질감'),
-  preset({ ko: '형광 계기판', en: 'Phosphor Gauge' }, 'dark', ['IBM Plex Sans KR', [700]], ['IBM Plex Sans KR', [400, 500]],
-    ['#0F1211', '#171C1A', '#E6EDE8', '#9AA59F', '#E6EDE8', '#C6F432', '#2A322E'],
-    { ko: '모노 숫자, 선 그리드 배경, 촘촘한 정보', en: 'Mono numerals, line-grid background, dense info' }, [2, 4, 6],
-    '숫자가 0에서 실제 값으로 빠르게 올라감', '1px 선 그리드 패턴', 'IBM Plex Mono'),
-  preset({ ko: '브루탈 포스터', en: 'Brutal Poster' }, 'light', ['Black Han Sans', [400]], ['Gothic A1', [400, 700]],
-    ['#FFFFFF', '#F4F4F4', '#111111', '#444444', '#111111', '#2F3BFF', '#111111'],
-    { ko: '두꺼운 테두리, 직각, 그림자 대신 오프셋 면', en: 'Thick borders, right angles, offset slabs' }, [0, 0, 0],
-    '블록이 옆에서 미끄러져 들어와 딱 멈춤', '굵은 대각선 줄무늬 띠 하나'),
-  preset({ ko: '동네 손글씨', en: 'Neighborhood Hand' }, 'mid', ['Gowun Batang', [700]], ['Gowun Dodum', [400]],
-    ['#EFE6D4', '#F8F1E3', '#3B2F23', '#6E5E4C', '#3B2F23', '#B5532A', '#D9CBB2'],
-    { ko: '따뜻한 종이 질감, 둥근 형태, 큰 사진', en: 'Warm paper texture, round shapes, big photos' }, [10, 18, 28],
-    '사진이 살짝 기울어진 채 내려앉음', '크래프트지 질감 + 따뜻한 방사형 그라데이션'),
-  preset({ ko: '스위스 그리드', en: 'Swiss Grid' }, 'light', ['Gothic A1', [900]], ['Gothic A1', [400]],
-    ['#F2F2EF', '#FFFFFF', '#141414', '#555555', '#141414', '#E3241B', '#CFCFCA'],
-    { ko: '엄격한 12단 그리드, 굵은 숫자, 비대칭', en: 'Strict 12-col grid, bold numerals, asymmetry' }, [0, 0, 2],
-    '그리드 선이 먼저 그려지고 내용이 채워짐', '희미한 12단 컬럼 가이드'),
-  preset({ ko: '고요한 숲', en: 'Quiet Forest' }, 'mid', ['Nanum Myeongjo', [800]], ['IBM Plex Sans KR', [400]],
-    ['#E4E8E1', '#EEF1EB', '#1F2A24', '#4F5C54', '#1F2A24', '#7A5C2E', '#C5CEC4'],
-    { ko: '넓은 여백, 느린 페이드, 세이지 그라데이션', en: 'Wide margins, slow fades, sage gradient' }, [4, 8, 14],
-    '느린 페이드 인 (600ms)', '세이지 색 두 겹 그라데이션'),
-  preset({ ko: '레트로 팝', en: 'Retro Pop' }, 'color', ['Do Hyeon', [400]], ['Gothic A1', [500, 700]],
-    ['#FFD84D', '#FFF3C4', '#1A1A1A', '#3D3A2E', '#1A1A1A', '#C8205A', '#1A1A1A'],
-    { ko: '굵은 윤곽선, 스티커 같은 요소, 기울임', en: 'Thick outlines, sticker elements, tilts' }, [6, 14, 999],
-    '스티커가 튕기듯 붙음', '물방울 도트 패턴'),
-  preset({ ko: '심야 라운지', en: 'Late Lounge' }, 'dark', ['Song Myung', [400]], ['Nanum Gothic', [400, 700]],
-    ['#17131C', '#211B28', '#EDE6F2', '#A99DB5', '#EDE6F2', '#E8A54B', '#3A3142'],
-    { ko: '깊은 어둠 위 금빛 강조, 큰 세리프, 노이즈 질감', en: 'Gold on deep dark, big serif, grain' }, [2, 6, 12],
-    '금빛 선이 천천히 그어짐', '노이즈 질감 + 아래쪽 은은한 금빛 광원'),
-];
-
-export function presetAsDirection(i: number, lang: 'ko' | 'en'): Direction {
-  const p = PRESETS[i];
-  return { name: p.name[lang], mood: p.feature[lang], rationale: p.feature[lang], tokens: structuredClone(p.tokens) };
-}
+/** Used when a model returns incomplete tokens (the first style preset, 종이 신문). */
+const FALLBACK_TOKENS: DesignTokens = {
+  color: { bg: '#F3EEE4', surface: '#FBF8F2', ink: '#1C1A16', inkMuted: '#5E584D', primary: '#1C1A16', accent: '#D9481C', line: '#D8D0C1' },
+  font: { display: { family: 'Hahmlet', weights: [700, 900] }, body: { family: 'IBM Plex Sans KR', weights: [400, 600] } },
+  scale: [...DEFAULT_SCALE],
+  space: 8,
+  radius: { sm: 2, md: 4, lg: 8 },
+  shadow: ['0 1px 0 rgba(0,0,0,.06)'],
+  motion: { signature: '제목이 위에서 아래로 인쇄되듯 차례로 나타남' },
+  background: { treatment: '미세한 종이 노이즈 질감' },
+};
 
 export function setTokenPath(t: DesignTokens, path: string, value: unknown): DesignTokens {
   const out: any = structuredClone(t);

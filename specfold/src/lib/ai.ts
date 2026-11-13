@@ -3,7 +3,6 @@ import * as P from './prompts';
 import type { ChangeEntry, CheckResult, DesignTokens, Direction, Lang, LintViolation, Project, ProjectSpec, ProviderSettings, SpecScreen } from './types';
 import { cleanScreenHtml, extractJson, extractTag } from './util';
 import { normalizeTokens } from './tokens';
-import { getUsage } from './db';
 import { summarizeScreen } from './preview';
 
 export interface Ctx {
@@ -15,6 +14,9 @@ export interface Ctx {
 
 const vars = (p: Project, ctx: Ctx) => ({ contentLanguage: P.LANG_NAME[p.contentLang], uiLanguage: P.LANG_NAME[ctx.uiLang] });
 const designSystem = (p: Project, ctx: Ctx, extra: string) => P.fill(P.PRINCIPLES + '\n\n' + extra, vars(p, ctx));
+/** The picked direction's style brief, as sent with P4/P5. */
+const directionGuide = (p: Project) =>
+  p.direction?.guide ? `방향: ${p.direction.name}\n${p.direction.guide}` : p.direction ? `방향: ${p.direction.name} (별도 지침 없음 — 토큰의 분위기를 따른다)` : '(지정 없음 — 토큰의 분위기를 따른다)';
 
 function attachmentsText(p: Project) {
   return p.attachments.filter((a) => a.kind === 'text').map((a) => `## ${a.name}\n${(a.text ?? '').slice(0, 20000)}`).join('\n\n') || '(없음)';
@@ -95,20 +97,6 @@ export function normalizeSpec(r: any): ProjectSpec {
   };
 }
 
-// P3
-export async function aiDirections(p: Project, ctx: Ctx): Promise<Direction[]> {
-  const u = await getUsage();
-  const sys = designSystem(p, ctx, P.fill(P.P3_SYSTEM, {
-    ...vars(p, ctx),
-    recentFonts: u.fontsUsed.join(', ') || '(없음)',
-    recentHues: u.primaryHuesUsed.join(', ') || '(없음)',
-    recentThemes: u.themesUsed.join(', ') || '(없음)',
-    avoidKeywords: p.spec?.avoidKeywords.join(', ') || '(없음)',
-  }));
-  const r = await askJson<any>(ctx, ctx.settings.strongModel, sys, userMsg(P.fill(P.P3_USER, { specJson: JSON.stringify(p.spec) })), 16000);
-  return (r.directions || []).slice(0, 3).map(normalizeDirection);
-}
-
 function normalizeDirection(d: any): Direction {
   return {
     name: String(d.name || 'Direction'),
@@ -122,6 +110,7 @@ function normalizeDirection(d: any): Direction {
     backgroundTreatment: d.backgroundTreatment,
     miniPreviewHtml: typeof d.miniPreviewHtml === 'string' ? cleanScreenHtml(d.miniPreviewHtml) : undefined,
     contrastCheck: d.contrastCheck,
+    guide: typeof d.guide === 'string' && d.guide.trim() ? d.guide.trim() : undefined,
   };
 }
 
@@ -179,6 +168,7 @@ export async function aiScreen(p: Project, screen: SpecScreen, ctx: Ctx, extra =
     navTargets,
     platform: p.spec!.platform,
     signatureMotion: p.tokens!.motion.signature,
+    directionGuide: directionGuide(p),
     existingScreensSummary: existing,
   }));
   const msg = P.fill(P.P4_USER, {
@@ -218,6 +208,7 @@ export async function aiEdit(
     screenHtml: screen?.html ?? '',
     otherScreens,
     tokensJson: JSON.stringify(p.tokens),
+    directionGuide: directionGuide(p),
     specJson: JSON.stringify(p.spec),
   });
   const r = await askJson<EditResult>(ctx, ctx.settings.strongModel, sys, userMsg(msg), 16000);
