@@ -48,6 +48,197 @@ const wrap = (style: string, inner: string) => `<div style="min-height:440px;box
 const bars = (widths: number[], color = 'var(--color-line)', h = 8) => widths.map((w) => `<div style="height:${h}px;width:${w}%;background:${color}"></div>`).join('');
 
 export const PRESETS: StylePreset[] = [
+  // ---- the looks people ask AI design tools for most (see design-prompts.md §8), most requested first ----
+  {
+    id: 'midnight',
+    name: { ko: '심야 작업실', en: 'Midnight Workbench' },
+    genre: { ko: '다크 프로덕트 미니멀', en: 'Dark product minimal' },
+    theme: 'dark',
+    feature: { ko: '거의 검은 바탕, 헤어라인, 촘촘한 글자, 빠른 길 하나', en: 'Near-black ground, hairlines, tight type, one fast path' },
+    bestFor: { ko: '매일 일하는 도구: 이슈·프로젝트 관리, 개발자 도구, 팀 협업', en: 'Daily work tools: issue and project tracking, developer tools, team collaboration' },
+    guide: `- 레이아웃: 생산성 도구. 왼쪽 좁은 내비게이션과 넓은 작업 영역(모바일은 목록 → 상세). 명령 입력창이나 단축키 힌트 같은 "빠른 길"을 하나 둔다
+- 형태: 1px 헤어라인으로만 구분한다. 반경은 6~8px로 통일하고 그림자와 발광은 쓰지 않는다. 면의 밝기 차이는 한두 단계만
+- 타이포: 작고 촘촘한 본문(13~14px)과 굵기 500~600의 제목. 자간을 살짝 좁히고 수치와 단축키는 고정폭
+- 색: 거의 무채색. 강조색은 선택된 항목, 주 버튼, 진행 표시에만 작게 쓴다
+- 피할 것: 네온 발광, 그라데이션 면, 큰 일러스트, 둥글둥글한 카드, 넓은 장식 여백`,
+    tokens: tokens(['IBM Plex Sans KR', [500, 600]], ['IBM Plex Sans KR', [400, 500]],
+      ['#0F1012', '#17181C', '#ECEDEF', '#9A9DA6', '#ECEDEF', '#8EA0FF', '#2A2C33'], [4, 6, 8],
+      '목록이 위에서 아래로 40ms 간격으로 또렷해짐', '무늬 없는 거의 검은 바탕. 헤어라인만', { mono: 'IBM Plex Mono', shadow: [] }),
+    mini: (v) => wrap('padding:0', `
+      <div style="display:grid;grid-template-columns:92px 1fr;min-height:440px">
+        <div style="border-right:1px solid var(--color-line);padding:14px 10px;display:grid;gap:6px;align-content:start;font-size:11px">
+          <span style="font-weight:600;margin-bottom:8px">${v.name}</span>
+          ${[1, 0, 0, 0].map((on) => `<span style="height:22px;border-radius:6px;${on ? 'background:var(--color-surface);border:1px solid var(--color-line);' : ''}display:flex;align-items:center;padding:0 6px"><span style="height:5px;width:${on ? 44 : 34}px;border-radius:3px;background:${on ? 'var(--color-ink)' : 'var(--color-line)'}"></span></span>`).join('')}</div>
+        <div style="padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--color-line);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--color-ink-muted);background:var(--color-surface)"><span style="${M}">⌘K</span><span style="flex:1;height:5px;border-radius:3px;background:var(--color-line)"></span></div>
+          <p style="${D};font-weight:600;font-size:21px;line-height:1.35;letter-spacing:-.01em;margin:16px 0 6px">${v.first}</p>
+          <p style="font-size:12px;line-height:1.6;color:var(--color-ink-muted);margin:0 0 12px">${v.summary}</p>
+          ${[[70, 'SPC-12'], [52, 'SPC-11'], [62, 'SPC-10']].map(([w, id], i) => `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--color-line)"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid ${i ? 'var(--color-ink-muted)' : 'var(--color-accent)'};${i ? '' : 'background:var(--color-accent)'}"></span><span style="height:5px;width:${w}%;border-radius:3px;background:var(--color-ink-muted);opacity:${i ? 0.55 : 0.9}"></span><span style="margin-left:auto;${M};font-size:10px;color:var(--color-ink-muted)">${id}</span></div>`).join('')}
+          <span style="display:inline-block;margin-top:10px;background:var(--color-accent);color:var(--color-bg);font-size:12px;font-weight:500;padding:6px 12px;border-radius:6px">${v.cta}</span></div></div>`),
+  },
+  {
+    id: 'frost',
+    name: { ko: '서리 유리', en: 'Frosted Glass' },
+    genre: { ko: '글래스모피즘', en: 'Glassmorphism' },
+    theme: 'mid',
+    feature: { ko: '내용 위에 떠 있는 반투명 유리 층, 새벽빛 바탕', en: 'Translucent glass layers floating over content, dawn-light ground' },
+    bestFor: { ko: '사진과 분위기가 중요한 서비스: 날씨·음악·사진, 뷰티, 라이프스타일', en: 'Mood-and-imagery products: weather, music and photos, beauty, lifestyle' },
+    guide: `- 레이아웃: 내용(사진, 목록)이 바닥에 깔리고 그 위에 떠 있는 층이 겹친다. 떠 있는 층은 두세 개까지만: 상단 바, 하단 탭이나 시트, 필요할 때의 알림
+- 형태: 떠 있는 층에만 반투명 유리(흰색 50~65% + backdrop-filter: blur, 1px 밝은 테두리, 큰 반경)를 쓴다. 유리는 장식이 아니라 "위에 떠 있다"는 표시다
+- 타이포: 글자는 불투명한 면(surface)이나 충분히 흐려진 유리 위에만 둔다. 가는 제목과 또렷한 본문
+- 배경: 토큰 색 두세 가지가 부드럽게 번진 새벽빛. 무늬나 덩어리 장식은 넣지 않는다
+- 피할 것: 모든 카드를 유리로 만들기, 유리 위의 흐린 회색 글자, 네온 테두리, 유리 안에 또 유리`,
+    tokens: tokens(['Gowun Dodum', [400]], ['Gowun Dodum', [400]],
+      ['#F1D5DA', '#FFF8F9', '#2A1820', '#6B4E58', '#2A1820', '#B02E5C', '#E3B9C2'], [12, 20, 28],
+      '유리 층이 아래에서 떠올라 제자리에 멈춤', '분홍빛이 부드럽게 번진 새벽 하늘', { shadow: ['0 8px 24px rgba(42,24,32,.12)'] }),
+    mini: (v) => wrap('background:radial-gradient(circle at 88% 8%,var(--color-surface),transparent 48%),radial-gradient(circle at 6% 82%,var(--color-line),transparent 56%),var(--color-bg)', `
+      <div style="position:absolute;left:18px;top:76px;width:168px;height:150px;border-radius:22px;background:linear-gradient(150deg,var(--color-accent),var(--color-line))"></div>
+      <div style="position:absolute;right:18px;top:96px;width:168px;height:190px;border-radius:22px;background:linear-gradient(200deg,var(--color-ink-muted),var(--color-line))"></div>
+      <div style="position:absolute;left:14px;right:14px;top:14px;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.8);font-size:13px"><span>${v.name}</span><span style="width:18px;height:2px;background:var(--color-ink);box-shadow:0 5px 0 var(--color-ink)"></span></div>
+      <div style="position:absolute;left:14px;right:14px;top:132px;padding:20px;border-radius:26px;background:rgba(255,255,255,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.85)">
+        <p style="${D};font-size:27px;line-height:1.3;margin:0 0 8px">${v.first}</p>
+        <p style="font-size:13px;line-height:1.65;color:var(--color-ink-muted);margin:0 0 14px">${v.summary}</p>
+        <span style="display:inline-block;background:var(--color-accent);color:var(--color-surface);font-size:14px;padding:9px 22px;border-radius:999px">${v.cta}</span></div>`),
+  },
+  {
+    id: 'crisp',
+    name: { ko: '또렷한 소개서', en: 'Crisp Showcase' },
+    genre: { ko: '크리스프 SaaS', en: 'Crisp SaaS' },
+    theme: 'light',
+    feature: { ko: '푸른 기 도는 흰색과 남색, 살짝 어긋나게 겹친 화면 조각, 코드 블록', en: 'Blue-white and navy, product fragments layered slightly off, code blocks' },
+    bestFor: { ko: '믿음이 중요한 제품: 결제·금융 API, B2B SaaS 소개, 개발자 문서', en: 'Trust-first products: payment and finance APIs, B2B SaaS pages, developer docs' },
+    guide: `- 레이아웃: 제품 소개와 문서 사이. 왼쪽에 짧은 제목·설명·버튼, 오른쪽에 실제 화면 조각(카드, 코드, 표)을 두세 장 겹쳐 살짝 어긋나게 놓는다
+- 형태: 반경 8px, 1px 옅은 테두리, 한 방향으로 떨어지는 부드러운 2단 그림자로 "떠 있는 종이"를 만든다. 구역은 비스듬한 색 띠 하나로 나눌 수 있다
+- 타이포: 짙은 남색 글자, 굵기 600~700 제목, 넉넉한 줄 간격의 본문. 코드와 수치는 고정폭
+- 색: 푸른 기 도는 흰색과 남색, 강조색 하나. 강조색은 주 버튼, 링크, 코드의 핵심 한 줄에만
+- 피할 것: 보라색 그라데이션 배경, 아이콘 카드 세 개 나란히, 모든 요소에 같은 그림자, 가운데 정렬 히어로`,
+    tokens: tokens(['Gothic A1', [600, 700]], ['Gothic A1', [400, 500]],
+      ['#F5F8FC', '#FFFFFF', '#0B2540', '#4A5B70', '#0B2540', '#3F51F0', '#D9E1EC'], [4, 8, 12],
+      '겹친 카드가 아래에서 차례로 올라와 살짝 어긋나게 멈춤', '옅은 푸른 흰색 바탕을 가로지르는 비스듬한 색 띠 하나', { mono: 'IBM Plex Mono', shadow: ['0 2px 4px rgba(11,37,64,.06)', '0 12px 28px rgba(11,37,64,.1)'] }),
+    mini: (v) => wrap('padding:20px', `
+      <span style="position:absolute;left:-40px;right:-40px;top:214px;height:170px;background:var(--color-accent);opacity:.1;transform:skewY(-8deg)"></span>
+      <p style="position:relative;font-size:12px;font-weight:600;margin:0 0 18px;display:flex;justify-content:space-between"><span>${v.name}</span><span style="color:var(--color-accent)">Docs →</span></p>
+      <p style="position:relative;${D};font-weight:700;font-size:26px;line-height:1.3;letter-spacing:-.01em;margin:0 0 8px">${v.first}</p>
+      <p style="position:relative;font-size:13px;line-height:1.6;color:var(--color-ink-muted);margin:0 0 12px">${v.summary}</p>
+      <span style="position:relative;display:inline-block;background:var(--color-accent);color:var(--color-surface);font-size:13px;font-weight:600;padding:8px 16px;border-radius:999px">${v.cta} →</span>
+      <div style="position:relative;height:120px;margin-top:16px">
+        <div style="position:absolute;left:0;top:12px;width:200px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:8px;box-shadow:0 2px 4px rgba(11,37,64,.06),0 12px 28px rgba(11,37,64,.1);padding:12px;display:grid;gap:7px">${bars([70, 92, 54], 'var(--color-line)', 6)}<span style="height:6px;width:36%;background:var(--color-accent)"></span></div>
+        <div style="position:absolute;right:0;top:0;width:178px;background:var(--color-ink);border-radius:8px;box-shadow:0 12px 28px rgba(11,37,64,.1);padding:11px 12px;${M};font-size:10px;line-height:1.75;color:var(--color-line)">$ curl /v1/orders<br><span style="color:var(--color-surface)">{ "status": "ok" }</span></div></div>`),
+  },
+  {
+    id: 'blockdoc',
+    name: { ko: '블록 문서', en: 'Block Document' },
+    genre: { ko: '문서형 워크스페이스', en: 'Document workspace' },
+    theme: 'light',
+    feature: { ko: '화면 전체가 문서 한 장: 세리프 제목, 토글·콜아웃·태그 블록', en: 'The whole screen is one document: serif title, toggle, callout and tag blocks' },
+    bestFor: { ko: '적고 쌓아 가는 서비스: 위키·노트, 팀 지식 관리, 개인 기록', en: 'Write-and-accumulate products: wikis and notes, team knowledge, personal logs' },
+    guide: `- 레이아웃: 화면 전체가 문서 한 장. 가운데 좁은 단(본문 폭 640px 안팎)에 제목 → 속성 줄 → 본문 블록을 위에서 아래로 쌓는다
+- 형태: 카드와 그림자 없이 블록만 쓴다. 토글 목록, 체크박스, 왼쪽에 표식이 달린 콜아웃(옅은 면), 가는 선으로만 그린 표. 태그는 작은 알약
+- 타이포: 세리프 제목 하나, 본문은 담백한 고딕. 글자 단계는 세 가지(큰 제목, 소제목, 본문)만
+- 색: 따뜻한 흰색과 먹색. 강조색은 태그 하나와 링크에만 쓰고, 콜아웃 면은 surface 색
+- 피할 것: 히어로, 큰 버튼, 색 면 카드, 아이콘 장식, 여러 단으로 나눈 대시보드`,
+    tokens: tokens(['Noto Serif KR', [700]], ['Nanum Gothic', [400, 700]],
+      ['#FBFAF6', '#F1EFE9', '#2A2926', '#6C6963', '#2A2926', '#2E6E5D', '#E2DFD7'], [3, 4, 6],
+      '토글을 열면 안쪽 블록이 위에서부터 차례로 펼쳐짐', '무늬 없는 따뜻한 흰색', { shadow: [] }),
+    mini: (v) => wrap('padding:24px 34px', `
+      <p style="font-size:11px;color:var(--color-ink-muted);margin:0 0 16px">${v.name} / …</p>
+      <p style="${D};font-weight:700;font-size:27px;line-height:1.3;margin:0 0 12px">${v.first}</p>
+      <div style="display:grid;grid-template-columns:64px 1fr;gap:8px 10px;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--color-line)">
+        ${[[44, 1], [36, 0]].map(([w, on]) => `<span style="height:5px;width:${w}px;border-radius:3px;background:var(--color-line)"></span><span style="display:flex;gap:6px"><span style="height:16px;width:54px;border-radius:999px;background:${on ? 'var(--color-accent)' : 'var(--color-surface)'};opacity:${on ? 0.28 : 1}"></span><span style="height:16px;width:38px;border-radius:999px;background:var(--color-surface)"></span></span>`).join('')}</div>
+      <div style="background:var(--color-surface);border-radius:4px;padding:10px 12px;display:flex;gap:10px;font-size:13px;line-height:1.6;margin:12px 0"><span style="flex:none;width:3px;border-radius:2px;background:var(--color-accent)"></span><span>${v.summary}</span></div>
+      ${[['▸', 62], ['☐', 48], ['☐', 56]].map(([g, w]) => `<div style="display:flex;align-items:center;gap:10px;font-size:13px;padding:4px 0;color:var(--color-ink-muted)"><span style="width:14px">${g}</span><span style="height:6px;width:${w}%;border-radius:3px;background:var(--color-line)"></span></div>`).join('')}
+      <span style="display:inline-block;margin-top:10px;font-size:13px;color:var(--color-accent);border-bottom:1px solid var(--color-accent)">${v.cta}</span>`),
+  },
+  {
+    id: 'console',
+    name: { ko: '업무 관제판', en: 'Ops Console' },
+    genre: { ko: '데이터 밀도 · 유틸리티', en: 'Data-dense · Utility' },
+    theme: 'light',
+    feature: { ko: '고정된 필터 줄, 촘촘한 표, 자릿수 맞춘 수치, 작은 상태 라벨', en: 'Pinned filter bar, compact table, aligned numerals, small status labels' },
+    bestFor: { ko: '많은 항목을 빨리 처리하는 화면: 관리자 페이지, 주문·재고, CRM, 운영 도구', en: 'Processing many items fast: admin pages, orders and inventory, CRM, ops tools' },
+    guide: `- 레이아웃: 업무용 화면. 위에 필터·검색 줄을 고정하고 아래에 촘촘한 표(행 높이 36~40px)를 둔다. 선택한 행의 상세는 오른쪽 패널에
+- 형태: 1px 구분선과 2~4px 반경. 그림자 없이 흰 패널과 회색 바탕의 차이로만 구분한다. 상태는 작은 알약 라벨과 도형(●▲■)으로
+- 타이포: 13~14px 본문, 열 제목은 작고 굵게. 수치는 고정폭으로 오른쪽 정렬하고 자릿수를 맞춘다
+- 색: 회색 단계와 강조색 하나. 강조색은 주의가 필요한 상태와 주 버튼에만 쓰고, 나머지 상태는 굵기와 도형으로 구분한다
+- 피할 것: 큰 히어로, 장식 그래픽, 넓은 여백에 흩어진 카드, 지표를 크게 키운 숫자 타일`,
+    tokens: tokens(['Noto Sans KR', [500, 700]], ['Noto Sans KR', [400, 500]],
+      ['#E6E9ED', '#FFFFFF', '#1A222D', '#566170', '#1A222D', '#B8500A', '#CBD1D9'], [2, 4, 6],
+      '필터를 바꾸면 달라진 행만 잠깐 짙어졌다 돌아옴', '무늬 없는 회색 바탕', { mono: 'Nanum Gothic Coding', shadow: [] }),
+    mini: (v) => wrap('padding:14px', `
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px"><span style="font-weight:700;font-size:13px;margin-right:auto">${v.name}</span>${[1, 0, 0].map((on) => `<span style="height:22px;width:${on ? 46 : 40}px;border-radius:4px;border:1px solid ${on ? 'var(--color-ink)' : 'var(--color-line)'};background:${on ? 'var(--color-ink)' : 'var(--color-surface)'}"></span>`).join('')}</div>
+      <p style="${D};font-weight:700;font-size:19px;line-height:1.3;margin:0 0 10px">${v.first}</p>
+      <div style="background:var(--color-surface);border:1px solid var(--color-line);border-radius:4px;font-size:11px">
+        <div style="display:grid;grid-template-columns:46px 1fr 62px 56px;gap:8px;padding:7px 10px;font-weight:700;color:var(--color-ink-muted);border-bottom:1px solid var(--color-line)"><span>ID</span><span>NAME</span><span>STATE</span><span style="text-align:right">QTY</span></div>
+        ${[['0412', 74, 1, '1,204'], ['0411', 58, 0, '986'], ['0410', 66, 0, '731'], ['0409', 50, 0, '655'], ['0408', 70, 0, '412']].map(([id, w, warn, q], i) => `<div style="display:grid;grid-template-columns:46px 1fr 62px 56px;gap:8px;align-items:center;padding:8px 10px;border-top:${i ? 1 : 0}px solid var(--color-line)"><span style="${M};color:var(--color-ink-muted)">${id}</span><span style="height:5px;width:${w}%;border-radius:3px;background:var(--color-ink-muted)"></span><span style="${warn ? 'color:var(--color-accent);font-weight:700' : 'color:var(--color-ink-muted)'}">${warn ? '▲ HOLD' : '● OK'}</span><span style="${M};text-align:right">${q}</span></div>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--color-ink-muted)"><span>${v.summary.slice(0, 26)}</span><span style="background:var(--color-accent);color:var(--color-surface);font-weight:500;font-size:12px;padding:6px 12px;border-radius:4px">${v.cta}</span></div>`),
+  },
+  {
+    id: 'onequestion',
+    name: { ko: '한 화면 한 질문', en: 'One Question' },
+    genre: { ko: '클린 핀테크', en: 'Clean fintech' },
+    theme: 'light',
+    feature: { ko: '문장형 큰 제목, 넓은 선택지, 아래에 고정된 주 버튼 하나', en: 'Sentence-style headline, roomy choices, one primary button pinned at the bottom' },
+    bestFor: { ko: '단계를 밟아 끝내는 서비스: 송금·결제, 가입·인증, 보험·예약 신청', en: 'Step-by-step completion: transfers and payments, sign-up and verification, applications' },
+    guide: `- 레이아웃: 한 화면에 질문 하나. 위에 문장형 제목("얼마를 보낼까요?"), 가운데에 답할 입력이나 선택지, 맨 아래에 화면 폭을 채운 주 버튼 하나를 고정한다
+- 형태: 큰 반경(16~20px)의 흰 면과 넓은 터치 영역(행 높이 56px 이상). 테두리 대신 바탕과의 밝기 차이로 구분하고 그림자는 쓰지 않는다
+- 타이포: 제목은 굵게 한두 줄, 설명은 한 단계 옅게. 금액과 수치는 제목과 같은 크기로 또렷하게 쓴다(숫자만 따로 키우지 않는다)
+- 색: 흰색과 옅은 회색, 파랑 하나. 파랑은 주 버튼과 선택 상태에만
+- 피할 것: 한 화면에 여러 결정, 촘촘한 표, 장식 일러스트 나열, 작은 글씨의 긴 안내문`,
+    tokens: tokens(['Noto Sans KR', [700]], ['Noto Sans KR', [400, 500]],
+      ['#F1F3F6', '#FFFFFF', '#17202B', '#5B6675', '#17202B', '#2272EB', '#DDE2E8'], [10, 16, 20],
+      '다음 질문이 오른쪽에서 밀려 들어옴', '무늬 없는 옅은 회색 바탕', { shadow: [] }),
+    mini: (v) => wrap('padding:16px 18px', `
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-ink-muted)"><span>‹</span><span>${v.name}</span><span>2 / 4</span></div>
+      <p style="${D};font-weight:700;font-size:25px;line-height:1.35;margin:16px 0 6px">${v.first}</p>
+      <p style="font-size:13px;line-height:1.55;color:var(--color-ink-muted);margin:0 0 12px">${v.summary}</p>
+      ${[[1, 56], [0, 44]].map(([on, w]) => `<div style="background:var(--color-surface);border-radius:16px;height:48px;padding:0 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;${on ? 'box-shadow:inset 0 0 0 2px var(--color-accent)' : ''}"><span style="width:18px;height:18px;border-radius:50%;box-sizing:border-box;border:${on ? '6px solid var(--color-accent)' : '2px solid var(--color-line)'}"></span><span style="height:7px;width:${w}%;border-radius:4px;background:${on ? 'var(--color-ink)' : 'var(--color-ink-muted)'};opacity:${on ? 0.85 : 0.5}"></span></div>`).join('')}
+      <span style="display:block;margin-top:4px;text-align:center;background:var(--color-accent);color:var(--color-surface);font-weight:500;font-size:16px;padding:13px;border-radius:16px">${v.cta}</span>`),
+  },
+  {
+    id: 'market',
+    name: { ko: '동네 장터', en: 'Local Market' },
+    genre: { ko: '프렌들리 마켓플레이스', en: 'Friendly marketplace' },
+    theme: 'light',
+    feature: { ko: '사진과 가격이 나란한 목록, 분류 칩, 떠 있는 글쓰기 버튼', en: 'Photo-and-price list rows, category chips, a floating post button' },
+    bestFor: { ko: '사람끼리 주고받는 서비스: 중고 거래, 숙소·공간 대여, 동네 모임·구인', en: 'People-to-people products: second-hand trade, stays and space rental, local groups and gigs' },
+    guide: `- 레이아웃: 거래 목록. 왼쪽 정사각 사진과 오른쪽 제목·동네·시간·가격으로 된 행을 세로로 쌓는다. 위에는 동네 선택과 분류 칩, 오른쪽 아래에 글쓰기 버튼 하나를 띄운다
+- 형태: 사진은 반경 8~12px, 행 사이는 가는 구분선. 카드 테두리와 그림자 없이 목록 그대로 둔다. 대화는 말풍선으로
+- 타이포: 제목은 보통 굵기, 가격은 굵게, 동네·시간 같은 부가 정보는 작고 옅게
+- 색: 따뜻한 흰색 바탕에 주황 하나. 주황은 글쓰기 버튼, 관심 표시, 새 소식 점에만
+- 피할 것: 상품마다 큰 카드, 배너 캐러셀, 과한 배지, 차가운 회색`,
+    tokens: tokens(['Nanum Gothic', [800]], ['Nanum Gothic', [400, 700]],
+      ['#FFF7F0', '#FFFFFF', '#21160F', '#6F5F55', '#21160F', '#E8590C', '#F0E2D6'], [8, 12, 999],
+      '새 글이 목록 맨 위로 스르륵 끼어듦', '따뜻한 흰색 단색 바탕', { shadow: [] }),
+    mini: (v) => wrap('padding:16px 18px', `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="${D};font-weight:800;font-size:17px">${v.name} ▾</span><span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent)"></span></div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">${[1, 0, 0, 0].map((on) => `<span style="height:26px;width:${on ? 52 : 60}px;border-radius:999px;background:${on ? 'var(--color-ink)' : 'var(--color-surface)'};border:1px solid ${on ? 'var(--color-ink)' : 'var(--color-line)'}"></span>`).join('')}</div>
+      ${[0, 1, 2].map((i) => `<div style="display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--color-line)"><div style="flex:none;width:64px;height:64px;border-radius:10px;background:linear-gradient(${130 + i * 40}deg,var(--color-line),var(--color-ink-muted))"></div><div style="flex:1;min-width:0">${i ? `<span style="display:block;height:7px;width:${i === 1 ? 70 : 54}%;border-radius:4px;background:var(--color-ink);opacity:.8;margin:5px 0 9px"></span>` : `<p style="font-size:15px;margin:0 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.first}</p>`}<span style="display:block;height:5px;width:40%;border-radius:3px;background:var(--color-line);margin-bottom:9px"></span><span style="display:block;height:8px;width:${56 - i * 8}px;border-radius:4px;background:var(--color-ink)"></span></div><span style="font-size:16px;color:${i ? 'var(--color-line)' : 'var(--color-accent)'}">${i ? '♡' : '♥'}</span></div>`).join('')}
+      <span style="position:absolute;right:18px;top:246px;background:var(--color-accent);color:var(--color-surface);font-weight:700;font-size:14px;padding:11px 18px;border-radius:999px">+ ${v.cta}</span>`),
+  },
+  {
+    id: 'levelup',
+    name: { ko: '레벨업 학습', en: 'Level Up' },
+    genre: { ko: '게이미피케이션', en: 'Gamified learning' },
+    theme: 'light',
+    feature: { ko: '진행 막대와 연속 기록, 단계가 이어진 길, 꾹 눌리는 큰 버튼', en: 'Progress bar and streak, a path of steps, big buttons that press down' },
+    bestFor: { ko: '매일 조금씩 하는 서비스: 어학·퀴즈 학습, 습관·운동 기록, 어린이 교육', en: 'A-little-every-day products: language and quiz learning, habits and workouts, kids education' },
+    guide: `- 레이아웃: 학습 게임. 맨 위에 진행 막대와 연속 기록, 가운데에 오늘 할 한 가지, 아래에 큰 버튼. 단계는 지그재그로 이어진 길(동그란 마디)로 보여준다
+- 형태: 평평하고 선명한 색 면에 아래쪽 4px 단색 테두리를 붙여 "눌리는" 버튼을 만든다(눌리면 아래 테두리가 사라지며 내려앉는다). 큰 반경과 2px 테두리
+- 타이포: 둥글고 굵은 제목, 짧은 격려 문구. 한 문장은 한 줄로
+- 색: 초록 하나가 주인공. 맞음과 진행은 강조색, 그 밖은 중립 톤
+- 피할 것: 가는 선, 옅은 회색 글자, 긴 설명, 흐린 그림자, 여러 색의 무지개`,
+    tokens: tokens(['Single Day', [400]], ['Nanum Gothic', [400, 700, 800]],
+      ['#EAF7E3', '#FFFFFF', '#18301D', '#4E6653', '#18301D', '#1E8E3E', '#C7E3BC'], [12, 16, 24],
+      '진행 막대가 차오르고 완료한 마디가 채워짐', '연한 풀빛 단색 바탕', { shadow: ['0 4px 0 rgba(24,48,29,1)'] }),
+    mini: (v) => wrap('padding:18px', `
+      <div style="display:flex;align-items:center;gap:10px"><span style="flex:1;height:14px;border-radius:999px;background:var(--color-line);overflow:hidden"><span style="display:block;width:62%;height:100%;border-radius:999px;background:var(--color-accent)"></span></span><span style="font-weight:800;font-size:13px;color:var(--color-accent)">◆ 7</span></div>
+      <p style="font-size:12px;font-weight:700;color:var(--color-ink-muted);margin:14px 0 0">${v.name}</p>
+      <p style="${D};font-size:30px;line-height:1.2;margin:2px 0 14px">${v.first}</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:0 6px 20px">${[2, 2, 1, 0, 0].map((st, i) => `<span style="width:46px;height:46px;border-radius:50%;box-sizing:border-box;display:grid;place-items:center;font-weight:800;font-size:16px;transform:translateY(${i % 2 ? 8 : -6}px);${st === 2 ? 'background:var(--color-accent);color:var(--color-surface);border-bottom:4px solid var(--color-ink)' : st === 1 ? 'background:var(--color-surface);border:2px solid var(--color-ink);border-bottom-width:5px' : 'background:var(--color-line)'}">${st === 2 ? '✓' : st === 1 ? '★' : ''}</span>`).join('')}</div>
+      <span style="display:block;text-align:center;background:var(--color-accent);color:var(--color-surface);font-weight:800;font-size:16px;padding:12px;border-radius:16px;border-bottom:4px solid var(--color-ink)">${v.cta}</span>
+      <p style="font-size:13px;line-height:1.6;color:var(--color-ink-muted);margin:14px 2px 0">${v.summary}</p>`),
+  },
+  // ---- named style families ----
   {
     id: 'broadsheet',
     name: { ko: '종이 신문', en: 'Broadsheet' },
