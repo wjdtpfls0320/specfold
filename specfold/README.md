@@ -1,7 +1,7 @@
 # Specfold · 스펙폴드
 
 기획서를 펼치면 화면이 되고, 접으면 다시 기획서가 돼요.
-간단한 기획서 → 스타일 프리셋 15개 중 디자인 방향 선택 → 클릭 가능한 여러 화면 시안 → 수정 → 변경을 반영한 기획서(.md).
+간단한 기획서 → 스타일 프리셋 20개 중 디자인 방향 선택 → 클릭 가능한 여러 화면 시안 → 수정 → 변경을 반영한 기획서(.md).
 
 **서버가 없어요.** API 키와 기획서는 브라우저(IndexedDB/세션 저장소)에만 저장되고, AI 요청은 브라우저에서 공급자(Claude · OpenAI · Gemini · OpenRouter · 로컬 OpenAI 호환)로 바로 가요.
 
@@ -22,7 +22,7 @@ API 키 없이도 홈의 **완성 데모 둘러보기**로 전체 흐름(기획�
 | `src/lib/prompts.ts` | 프롬프트 팩 P1~P7 (`../design-prompts.md`와 동일) |
 | `src/lib/llm/providers.ts` | 5개 공급자 스트리밍 어댑터, 모델 등급 |
 | `src/lib/ai.ts` | 단계별 AI 호출, JSON 재시도 |
-| `src/lib/presets.ts` | 스타일 프리셋 15개 (토큰 + 스타일 지침 + 미리보기) |
+| `src/lib/presets.ts` | 스타일 프리셋 20개 (토큰 + 스타일 지침 + 미리보기) |
 | `src/lib/lint.ts` | 품질 검사 10개 규칙 |
 | `src/lib/preview.ts` | 샌드박스 미리보기 문서 + 브리지 스크립트 (선택/프로토타입 모드) |
 | `src/lib/edits.ts` | `data-dw-id` 기준 찾아 바꾸기, 조정 패널 직접 수정 |

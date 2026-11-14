@@ -23,7 +23,12 @@ export const FONT_PAIRS: { display: string; body: string; mono?: string }[] = [
   { display: 'Nanum Gothic Coding', body: 'Nanum Gothic Coding', mono: 'Nanum Gothic Coding' },
   { display: 'Yeon Sung', body: 'Noto Serif KR' },
   { display: 'Gaegu', body: 'Gowun Dodum' },
-  { display: 'Gugi', body: 'Orbit' },
+  { display: 'Gugi', body: 'Nanum Gothic Coding', mono: 'Nanum Gothic Coding' },
+  { display: 'Nanum Pen Script', body: 'Poor Story' },
+  { display: 'Orbit', body: 'IBM Plex Sans KR', mono: 'IBM Plex Mono' },
+  { display: 'Stylish', body: 'Gothic A1' },
+  { display: 'Gasoek One', body: 'Gothic A1' },
+  { display: 'Diphylleia', body: 'Gothic A1' },
   { display: 'Bagel Fat One', body: 'Gothic A1' },
   { display: 'Fraunces', body: 'Newsreader' },
   { display: 'Instrument Serif', body: 'Familjen Grotesk' },
@@ -164,7 +169,7 @@ export function normalizeTokens(raw: any, fallback: DesignTokens = FALLBACK_TOKE
 }
 const num = (v: any, fb: number) => (v === undefined || v === null || isNaN(Number(v)) ? fb : Number(v));
 
-/** Used when a model returns incomplete tokens (the first style preset, 종이 신문). */
+/** Used when a model returns incomplete tokens: a plain paper-and-ink set. */
 const FALLBACK_TOKENS: DesignTokens = {
   color: { bg: '#F3EEE4', surface: '#FBF8F2', ink: '#1C1A16', inkMuted: '#5E584D', primary: '#1C1A16', accent: '#D9481C', line: '#D8D0C1' },
   font: { display: { family: 'Hahmlet', weights: [700, 900] }, body: { family: 'IBM Plex Sans KR', weights: [400, 600] } },
